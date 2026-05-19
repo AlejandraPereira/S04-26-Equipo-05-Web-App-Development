@@ -11,16 +11,6 @@ import { CqrsModule } from '@nestjs/cqrs';
 @Module({
   imports: [
     CqrsModule,
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('DATABASE_URL'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-      }),
-    }),
     TypeOrmModule.forFeature([CompanyOrmEntity, JobOpportunityOrmEntity]),
   ],
   providers: CompanyMarketplaceProviders,
