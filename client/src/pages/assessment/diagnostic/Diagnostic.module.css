@@ -1,0 +1,164 @@
+.page {
+  min-height: 100vh;
+  padding: 24px;
+  color: #e5e7eb;
+  font-family: system-ui, sans-serif;
+  background: #0b0f19;
+}
+
+/* NAV */
+.nav {
+  max-width: 1000px;
+  margin: 0 auto 80px auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+}
+
+.navUser {
+  color: #9ca3af;
+  font-size: 14px;
+  margin: 0;
+}
+
+.navUser strong {
+  color: #fff;
+}
+
+/* HERO */
+.hero {
+  max-width: 700px;
+  margin: 0 auto 60px auto;
+  text-align: center;
+}
+
+.title {
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 18px;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: #9ca3af;
+  line-height: 1.7;
+}
+
+/* CARD */
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #1f2937;
+}
+
+/* PROGRESS */
+.progressWrapper {
+  margin-bottom: 40px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #1f2937;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #2563eb;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* QUESTION */
+.question {
+  font-size: 28px;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+/* OPTIONS */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.option {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #374151;
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  font-size: 15px;
+  transition: all 0.15s;
+}
+
+.option.selected {
+  border: 1px solid #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+  color: #60a5fa;
+}
+
+.checkmark {
+  margin-right: 8px;
+}
+
+/* ACTIONS */
+.actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.primaryButton {
+  background: #2563eb;
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: transparent;
+  border: 1px solid #374151;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  margin-top: 80px;
+  font-size: 12px;
+  color: #9ca3af;
+}

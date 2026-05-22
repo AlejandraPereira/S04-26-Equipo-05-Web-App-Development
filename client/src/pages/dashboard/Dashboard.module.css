@@ -1,0 +1,155 @@
+/* dashboard.module.css */
+
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #0b0f19;
+  color: #fff;
+}
+
+.wrapper.mobile {
+  flex-direction: column;
+}
+
+.wrapper.desktop {
+  flex-direction: row;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.subtitle {
+  color: #9ca3af;
+  margin-top: 5px;
+}
+
+/* Sections container */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Grid layouts */
+.gridCourses {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.gridCourses.mobile {
+  grid-template-columns: 1fr;
+}
+
+.gridHistory {
+  display: grid;
+  gap: 10px;
+}
+
+.gridRecommended {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.gridRecommended.mobile {
+  grid-template-columns: 1fr;
+}
+
+/* Section headers */
+.sectionHeader {
+  margin-bottom: 12px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Cards */
+.card {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #1f2937;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.card h3 {
+  margin-bottom: 10px;
+}
+
+.cardHistory {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  background: #0f172a;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cardHistory span:last-child {
+  color: #9ca3af;
+}
+
+/* Progress bar */
+.progressTrack {
+  height: 8px;
+  background: #1f2937;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #3b82f6;
+}
+
+.progressLabel {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Buttons */
+.btnPrimary {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.btnSecondary {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #1f2937;
+  color: #fff;
+  cursor: pointer;
+}
+
+.btnOutline {
+  background: transparent;
+  border: 1px solid #1f2937;
+  color: #60a5fa;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}

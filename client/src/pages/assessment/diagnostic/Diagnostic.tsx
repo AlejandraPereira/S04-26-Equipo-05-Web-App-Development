@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import styles from "./diagnostic.module.css";
 
 const steps = [
   {
@@ -20,7 +21,6 @@ const steps = [
   },
 ];
 
-// Mappingskills with scores
 const answerToSkills: Record<string, { name: string; score: number }[]> = {
   "Liderazgo":               [{ name: "Liderazgo", score: 85 }, { name: "Gestión del Cambio", score: 70 }],
   "RRHH":                    [{ name: "Gestión de Personas", score: 85 }, { name: "Comunicación", score: 75 }],
@@ -54,7 +54,6 @@ export default function DiagnosticPage() {
   };
 
   const handleSubmit = () => {
-    // TO DO:Construir skills desde las respuestas
     const skillMap: Record<string, number[]> = {};
     selected.forEach((answer) => {
       const mapped = answerToSkills[answer] ?? [];
@@ -76,65 +75,65 @@ export default function DiagnosticPage() {
   const canContinue = selected[step] !== "";
 
   return (
-    <div style={styles.page}>
+    <div className={styles.page}>
       {/* NAV */}
-      <div style={styles.nav}>
-        <div style={styles.logo}>ReConecta45</div>
+      <div className={styles.nav}>
+        <div className={styles.logo}>ReConecta45</div>
         {userName && (
-          <p style={{ color: "#9ca3af", fontSize: 14, margin: 0 }}>
-            Hola, <strong style={{ color: "#fff" }}>{userName}</strong> 👋
+          <p className={styles.navUser}>
+            Hola, <strong>{userName}</strong> 👋
           </p>
         )}
       </div>
 
       {/* HERO */}
-      <section style={styles.hero}>
-        <h1 style={styles.title}>Descubramos tu perfil profesional</h1>
-        <p style={styles.subtitle}>
+      <section className={styles.hero}>
+        <h1 className={styles.title}>Descubramos tu perfil profesional</h1>
+        <p className={styles.subtitle}>
           Queremos entender tu experiencia, habilidades y objetivos
           para construir una ruta personalizada para vos.
         </p>
       </section>
 
       {/* CARD */}
-      <section style={styles.card}>
+      <section className={styles.card}>
         {/* PROGRESS */}
-        <div style={styles.progressWrapper}>
-          <div style={styles.progressBar}>
-            <div style={{ ...styles.progressFill, width: `${((step + 1) / steps.length) * 100}%` }} />
+        <div className={styles.progressWrapper}>
+          <div className={styles.progressBar}>
+            <div
+              className={styles.progressFill}
+              style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+            />
           </div>
-          <p style={styles.progressText}>Paso {step + 1} de {steps.length}</p>
+          <p className={styles.progressText}>Paso {step + 1} de {steps.length}</p>
         </div>
 
-        <h2 style={styles.question}>{currentStep.question}</h2>
+        <h2 className={styles.question}>{currentStep.question}</h2>
 
-        <div style={styles.options}>
+        <div className={styles.options}>
           {currentStep.options.map((opt) => (
             <button
               key={opt}
-              style={{
-                ...styles.option,
-                ...(selected[step] === opt ? styles.optionSelected : {}),
-              }}
+              className={`${styles.option} ${selected[step] === opt ? styles.selected : ""}`}
               onClick={() => handleSelect(opt)}
             >
-              {selected[step] === opt && <span style={{ marginRight: 8 }}>✓</span>}
+              {selected[step] === opt && <span className={styles.checkmark}>✓</span>}
               {opt}
             </button>
           ))}
         </div>
 
         {/* ACTIONS */}
-        <div style={styles.actions}>
+        <div className={styles.actions}>
           {step > 0 ? (
-            <button style={styles.secondaryButton} onClick={() => setStep(step - 1)}>
+            <button className={styles.secondaryButton} onClick={() => setStep(step - 1)}>
               Volver
             </button>
           ) : <div />}
 
           {step < steps.length - 1 ? (
             <button
-              style={{ ...styles.primaryButton, opacity: canContinue ? 1 : 0.5 }}
+              className={styles.primaryButton}
               disabled={!canContinue}
               onClick={() => setStep(step + 1)}
             >
@@ -142,7 +141,7 @@ export default function DiagnosticPage() {
             </button>
           ) : (
             <button
-              style={{ ...styles.primaryButton, opacity: canContinue ? 1 : 0.5 }}
+              className={styles.primaryButton}
               disabled={!canContinue}
               onClick={handleSubmit}
             >
@@ -152,37 +151,9 @@ export default function DiagnosticPage() {
         </div>
       </section>
 
-      <div style={styles.footer}>
+      <div className={styles.footer}>
         ReConecta45 © 2026 — Revalorizando talento profesional
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: { minHeight: "100vh", padding: "24px", color: "#e5e7eb", fontFamily: "system-ui, sans-serif", background: "#0b0f19" },
-  nav: { maxWidth: "1000px", margin: "0 auto 80px auto", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  logo: { fontWeight: "700", fontSize: "18px", color: "#fff" },
-  hero: { maxWidth: "700px", margin: "0 auto 60px auto", textAlign: "center" },
-  title: { fontSize: "48px", fontWeight: "700", color: "#fff", marginBottom: "18px" },
-  subtitle: { fontSize: "18px", color: "#9ca3af", lineHeight: "1.7" },
-  card: { maxWidth: "720px", margin: "0 auto", padding: "32px", borderRadius: "20px", background: "rgba(255,255,255,0.03)", border: "1px solid #1f2937" },
-  progressWrapper: { marginBottom: "40px" },
-  progressBar: { width: "100%", height: "8px", background: "#1f2937", borderRadius: "999px", overflow: "hidden" },
-  progressFill: { height: "100%", background: "#2563eb", borderRadius: "999px", transition: "width 0.3s ease" },
-  progressText: { marginTop: "10px", fontSize: "14px", color: "#9ca3af" },
-  question: { fontSize: "28px", color: "#fff", marginBottom: "24px" },
-  options: { display: "flex", flexDirection: "column", gap: "14px" },
-  option: {
-    padding: "18px", borderRadius: "14px", border: "1px solid #374151",
-    background: "rgba(255,255,255,0.03)", color: "#fff", cursor: "pointer",
-    textAlign: "left", fontSize: "15px", transition: "all 0.15s",
-  },
-  optionSelected: {
-    border: "1px solid #2563eb", background: "rgba(37,99,235,0.12)", color: "#60a5fa",
-  },
-  actions: { marginTop: "40px", display: "flex", justifyContent: "space-between" },
-  primaryButton: { background: "#2563eb", border: "none", color: "white", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontWeight: "600", fontSize: "15px" },
-  secondaryButton: { background: "transparent", border: "1px solid #374151", color: "white", padding: "12px 18px", borderRadius: "10px", cursor: "pointer" },
-  footer: { textAlign: "center", marginTop: "80px", fontSize: "12px", color: "#9ca3af" },
-};

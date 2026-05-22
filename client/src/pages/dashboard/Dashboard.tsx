@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import styles from "./dashboard.module.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -15,96 +16,50 @@ export default function Dashboard() {
   }, []);
 
   const coursesInProgress = [
-    {
-      title: "Fundamentos de Inteligencia Artificial",
-      progress: 60,
-      id: "1",
-    },
-    {
-      title: "Marca personal digital",
-      progress: 35,
-      id: "3",
-    },
+    { title: "Fundamentos de Inteligencia Artificial", progress: 60, id: "1" },
+    { title: "Marca personal digital", progress: 35, id: "3" },
   ];
 
   const history = [
-    {
-      title: "Comunicación efectiva",
-      status: "Visto",
-    },
-    {
-      title: "Productividad y enfoque digital",
-      status: "Visto",
-    },
+    { title: "Comunicación efectiva", status: "Visto" },
+    { title: "Productividad y enfoque digital", status: "Visto" },
   ];
 
   const recommended = [
-    {
-      title: "Liderazgo en entornos cambiantes",
-      id: "2",
-    },
-    {
-      title: "Herramientas digitales modernas",
-      id: "4",
-    },
+    { title: "Liderazgo en entornos cambiantes", id: "2" },
+    { title: "Herramientas digitales modernas", id: "4" },
   ];
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#0b0f19",
-        color: "#fff",
-        flexDirection: isMobile ? "column" : "row",
-      }}
-    >
+    <div className={`${styles.wrapper} ${isMobile ? styles.mobile : styles.desktop}`}>
       <Sidebar />
 
-      <div style={{ flex: 1, padding: 20 }}>
+      <div className={styles.content}>
         <TopBar showLogo placeholder="Buscar cursos, habilidades..." />
-        
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ margin: 0 }}>Dashboard</h1>
-          <p style={{ color: "#9ca3af", marginTop: 5 }}>
+
+        <div className={styles.header}>
+          <h1>Dashboard</h1>
+          <p className={styles.subtitle}>
             Continuá tu aprendizaje y revisá tu progreso
           </p>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 25 }}>
+        <div className={styles.sections}>
 
           {/* COURSES IN PROGRESS */}
           <section>
-            <h2 style={{ marginBottom: 12 }}>📚 En progreso</h2>
-            <div
-              style={{
-                display: "grid",
-                gap: 12,
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(260px, 1fr))",
-              }}
-            >
+            <h2 className={styles.sectionHeader}>📚 En progreso</h2>
+            <div className={`${styles.gridCourses} ${isMobile ? styles.mobile : ""}`}>
               {coursesInProgress.map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: 16,
-                    borderRadius: 14,
-                    border: "1px solid #1f2937",
-                    background: "rgba(255,255,255,0.03)",
-                  }}
-                >
-                  <h3 style={{ marginBottom: 10 }}>{c.title}</h3>
-                  <div style={{ height: 8, background: "#1f2937", borderRadius: 999, overflow: "hidden" }}>
-                    <div style={{ width: `${c.progress}%`, height: "100%", background: "#3b82f6" }} />
+                <div key={i} className={styles.card}>
+                  <h3>{c.title}</h3>
+                  <div className={styles.progressTrack}>
+                    <div className={styles.progressFill} style={{ width: `${c.progress}%` }} />
                   </div>
-                  <p style={{ fontSize: 12, color: "#9ca3af" }}>{c.progress}% completado</p>
+                  <p className={styles.progressLabel}>{c.progress}% completado</p>
                   <button
+                    className={styles.btnPrimary}
                     onClick={() => navigate(`/curso/${c.id}`)}
-                    style={{
-                      marginTop: 10, width: "100%", padding: 10,
-                      borderRadius: 10, border: "none",
-                      background: "#2563eb", color: "#fff", cursor: "pointer",
-                    }}
                   >
                     Continuar
                   </button>
@@ -115,19 +70,12 @@ export default function Dashboard() {
 
           {/* HISTORIAL */}
           <section>
-            <h2 style={{ marginBottom: 12 }}>🕘 Vistos recientemente</h2>
-            <div style={{ display: "grid", gap: 10 }}>
+            <h2 className={styles.sectionHeader}>🕘 Vistos recientemente</h2>
+            <div className={styles.gridHistory}>
               {history.map((h, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: 14, borderRadius: 12,
-                    border: "1px solid #1f2937", background: "#0f172a",
-                    display: "flex", justifyContent: "space-between",
-                  }}
-                >
+                <div key={i} className={styles.cardHistory}>
                   <span>{h.title}</span>
-                  <span style={{ color: "#9ca3af" }}>{h.status}</span>
+                  <span>{h.status}</span>
                 </div>
               ))}
             </div>
@@ -135,42 +83,22 @@ export default function Dashboard() {
 
           {/* RECOMMENDED */}
           <section>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className={styles.sectionHeaderRow}>
               <h2>⭐ Recomendados</h2>
               <button
+                className={styles.btnOutline}
                 onClick={() => navigate("/learning")}
-                style={{
-                  background: "transparent", border: "1px solid #1f2937",
-                  color: "#60a5fa", padding: "8px 12px",
-                  borderRadius: 10, cursor: "pointer",
-                }}
               >
                 Ver catálogo
               </button>
             </div>
-            <div
-              style={{
-                display: "grid", gap: 12,
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))",
-              }}
-            >
+            <div className={`${styles.gridRecommended} ${isMobile ? styles.mobile : ""}`}>
               {recommended.map((r, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: 16, borderRadius: 14,
-                    border: "1px solid #1f2937",
-                    background: "rgba(255,255,255,0.03)",
-                  }}
-                >
+                <div key={i} className={styles.card}>
                   <h3>{r.title}</h3>
                   <button
+                    className={styles.btnSecondary}
                     onClick={() => navigate(`/curso/${r.id}`)}
-                    style={{
-                      marginTop: 10, width: "100%", padding: 10,
-                      borderRadius: 10, border: "none",
-                      background: "#1f2937", color: "#fff", cursor: "pointer",
-                    }}
                   >
                     Ver curso
                   </button>

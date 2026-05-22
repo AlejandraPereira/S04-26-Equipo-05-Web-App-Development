@@ -1,7 +1,8 @@
-import { CSSProperties, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import styles from "./myProfile.module.css";
 
 const USER_ID = "00000000-0000-0000-0000-000000000001";
 const API = "http://localhost:3008";
@@ -9,7 +10,7 @@ const API = "http://localhost:3008";
 type Profile = {
   id?: string;
   userId: string;
-  username: string |null; // add to backend
+  username: string | null;
   headline: string | null;
   summary: string | null;
   location: string | null;
@@ -59,9 +60,7 @@ export default function MyProfile() {
     summary: "",
   });
 
-  const [editLinks, setEditLinks] = useState({
-    linkedinUrl: "",
-  });
+  const [editLinks, setEditLinks] = useState({ linkedinUrl: "" });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -103,29 +102,23 @@ export default function MyProfile() {
         headline: editProfile.headline || null,
         location: editProfile.location || null,
         summary: editProfile.summary || null,
-        yearsExperience: editProfile.yearsExperience
-          ? Number(editProfile.yearsExperience)
-          : null,
+        yearsExperience: editProfile.yearsExperience ? Number(editProfile.yearsExperience) : null,
       };
-
       if (profile?.id) {
         const res = await fetch(`${API}/professional-profile/${profile.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        const data = await res.json();
-        setProfile(data);
+        setProfile(await res.json());
       } else {
         const res = await fetch(`${API}/professional-profile/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...body, userId: USER_ID }),
         });
-        const data = await res.json();
-        setProfile(data);
+        setProfile(await res.json());
       }
-
       setShowProfileModal(false);
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -135,25 +128,21 @@ export default function MyProfile() {
   const saveLinks = async () => {
     try {
       const body = { linkedinUrl: editLinks.linkedinUrl || null };
-
       if (profile?.id) {
         const res = await fetch(`${API}/professional-profile/${profile.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        const data = await res.json();
-        setProfile(data);
+        setProfile(await res.json());
       } else {
         const res = await fetch(`${API}/professional-profile/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...body, userId: USER_ID }),
         });
-        const data = await res.json();
-        setProfile(data);
+        setProfile(await res.json());
       }
-
       setShowLinksModal(false);
     } catch (err) {
       console.error("Error saving links:", err);
@@ -164,102 +153,92 @@ export default function MyProfile() {
 
   return (
     <>
-      <div style={{ ...styles.page, flexDirection: isMobile ? "column" : "row" }}>
+      <div className={`${styles.page} ${isMobile ? styles.mobile : styles.desktop}`}>
         <Sidebar />
 
-        <div style={styles.main}>
-          <TopBar showLogo placeholder="uscar cursos, habilidades..." />
+        <div className={styles.main}>
+          <TopBar showLogo placeholder="Buscar cursos, habilidades..." />
 
           {loading ? (
             <p style={{ color: "#9ca3af" }}>Cargando perfil...</p>
           ) : (
             <>
               {/* PROFILE HEADER */}
-              <div style={styles.profileHeader}>
-                <div style={styles.avatar}>{initials}</div>
+              <div className={styles.profileHeader}>
+                <div className={styles.avatar}>{initials}</div>
 
                 <div style={{ flex: 1 }}>
-                  <h1 style={styles.name}>
-                      {profile?.username ?? "Sin nombre"}
-                  </h1>
-                  <p style={styles.role}>
-                    {profile?.headline ?? "Sin rol"}
-                  </p>
-                  <p style={styles.role}>
+                  <h1 className={styles.name}>{profile?.username ?? "Sin nombre"}</h1>
+                  <p className={styles.role}>{profile?.headline ?? "Sin rol"}</p>
+                  <p className={styles.role}>
                     {profile?.summary ?? "Agrega una descripción de tu perfil"}
                   </p>
-                  <p style={styles.meta}>
+                  <p className={styles.meta}>
                     📍 {profile?.location ?? "Sin ubicación"} •{" "}
                     {profile?.yearsExperience != null
                       ? `${profile.yearsExperience} años de experiencia`
                       : "Sin experiencia cargada"}
                   </p>
 
-                  <div style={{ marginTop: 10, maxWidth: 300 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>
+                  <div className={styles.completionWrapper}>
+                    <div className={styles.completionLabel}>
                       <span>Perfil completado</span>
                       <span>{profile?.completionScore ?? 0}%</span>
                     </div>
-                    <div style={{ height: 6, background: "#1f2937", borderRadius: 999 }}>
+                    <div className={styles.progressBar}>
                       <div
-                        style={{
-                          height: "100%",
-                          borderRadius: 999,
-                          background: "#2563eb",
-                          width: `${profile?.completionScore ?? 0}%`,
-                          transition: "width 0.4s ease",
-                        }}
+                        className={styles.progressFill}
+                        style={{ width: `${profile?.completionScore ?? 0}%` }}
                       />
                     </div>
                   </div>
                 </div>
 
-                <span onClick={() => setShowProfileModal(true)} style={styles.editLink}>
+                <span className={styles.editLink} onClick={() => setShowProfileModal(true)}>
                   Editar perfil →
                 </span>
               </div>
 
               {/* GRID */}
-              <div style={{ ...styles.grid, gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr" }}>
+              <div
+                className={styles.grid}
+                style={{ gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr" }}
+              >
                 {/* LEFT */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div className={styles.leftCol}>
                   {/* COURSES */}
-                  <div style={styles.card}>
-                    <div style={styles.cardHeader}>
+                  <div className={styles.card}>
+                    <div className={styles.cardHeader}>
                       <h3>📖 Continúa con tu aprendizaje</h3>
-                      <span onClick={() => navigate("/learning")} style={styles.catalogLink}>
+                      <span className={styles.catalogLink} onClick={() => navigate("/learning")}>
                         Ver mis cursos →
                       </span>
                     </div>
                     {courses.map((c, i) => (
-                      <div key={i} style={styles.course}>
-                        <div style={styles.courseTop}>
+                      <div key={i} className={styles.course}>
+                        <div className={styles.courseTop}>
                           <span>{c.name}</span>
                           <span>{c.progress}%</span>
                         </div>
-                        <div style={styles.progressBar}>
-                          <div style={{ ...styles.progressFill, width: `${c.progress}%` }} />
+                        <div className={styles.progressBar}>
+                          <div className={styles.progressFill} style={{ width: `${c.progress}%` }} />
                         </div>
                       </div>
                     ))}
                   </div>
 
                   {/* SKILLS */}
-                  <div style={styles.card}>
+                  <div className={styles.card}>
                     <h3 style={{ marginBottom: 16 }}>🛡️ Habilidades Validadas</h3>
-                    <div style={{
-                      display: "grid",
-                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                      gap: 12,
-                    }}>
+                    <div className={`${styles.skillsGrid} ${isMobile ? styles.mobile : styles.desktop}`}>
                       {skills.map((s, i) => (
-                        <div key={i} style={styles.skillCard}>
-                          <div style={styles.skillBadge}>
+                        <div key={i} className={styles.skillCard}>
+                          <div className={styles.skillBadge}>
                             <span style={{ fontSize: 22 }}>{s.icon}</span>
                           </div>
                           <div style={{ flex: 1 }}>
-                            <p style={{ margin: 0, fontWeight: 600, color: "#f1f5f9", fontSize: 14 }}>{s.name}</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "#6b7280" }}>{s.category}</p>
+                            <p className={styles.skillName}>{s.name}</p>
+                            <p className={styles.skillCategory}>{s.category}</p>
                           </div>
                           <span style={{
                             fontSize: 11,
@@ -280,22 +259,20 @@ export default function MyProfile() {
                 </div>
 
                 {/* RIGHT */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  {/* BADGES */}
-                  <div style={styles.card}>
+                <div className={styles.rightCol}>
+                  <div className={styles.card}>
                     <h3>🏅 Insignias</h3>
-                    <div style={styles.badges}>
+                    <div className={styles.badges}>
                       {badges.map((b, i) => (
-                        <span key={i} style={styles.badge}>{b}</span>
+                        <span key={i} className={styles.badge}>{b}</span>
                       ))}
                     </div>
                   </div>
 
-                  {/* LINKS */}
-                  <div style={styles.card}>
-                    <div style={styles.cardHeader}>
+                  <div className={styles.card}>
+                    <div className={styles.cardHeader}>
                       <h3>Enlaces</h3>
-                      <span onClick={() => setShowLinksModal(true)} style={styles.catalogLink}>
+                      <span className={styles.catalogLink} onClick={() => setShowLinksModal(true)}>
                         Editar →
                       </span>
                     </div>
@@ -319,39 +296,39 @@ export default function MyProfile() {
 
       {/* MODAL PERFIL */}
       {showProfileModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>Editar perfil</h2>
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h2 className={styles.modalTitle}>Editar perfil</h2>
             <input
-              style={styles.input}
+              className={styles.input}
               value={editProfile.headline}
               onChange={(e) => setEditProfile({ ...editProfile, headline: e.target.value })}
               placeholder="Headline (ej: HR Leader con 20 años de experiencia)"
             />
             <input
-              style={styles.input}
+              className={styles.input}
               value={editProfile.location}
               onChange={(e) => setEditProfile({ ...editProfile, location: e.target.value })}
               placeholder="Ubicación (ej: Buenos Aires, Argentina)"
             />
             <input
-              style={styles.input}
+              className={styles.input}
               type="number"
               value={editProfile.yearsExperience}
               onChange={(e) => setEditProfile({ ...editProfile, yearsExperience: e.target.value })}
               placeholder="Años de experiencia"
             />
             <textarea
-              style={{ ...styles.input, height: 100, resize: "vertical" }}
+              className={styles.textarea}
               value={editProfile.summary}
               onChange={(e) => setEditProfile({ ...editProfile, summary: e.target.value })}
               placeholder="Resumen / Bio"
             />
-            <div style={styles.modalButtons}>
-              <button style={styles.cancelBtn} onClick={() => setShowProfileModal(false)}>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelBtn} onClick={() => setShowProfileModal(false)}>
                 Cancelar
               </button>
-              <button style={styles.saveBtn} onClick={saveProfile}>
+              <button className={styles.saveBtn} onClick={saveProfile}>
                 Guardar
               </button>
             </div>
@@ -361,20 +338,20 @@ export default function MyProfile() {
 
       {/* MODAL LINKS */}
       {showLinksModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>Editar enlaces</h2>
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h2 className={styles.modalTitle}>Editar enlaces</h2>
             <input
-              style={styles.input}
+              className={styles.input}
               value={editLinks.linkedinUrl}
               onChange={(e) => setEditLinks({ linkedinUrl: e.target.value })}
               placeholder="LinkedIn URL (ej: https://linkedin.com/in/usuario)"
             />
-            <div style={styles.modalButtons}>
-              <button style={styles.cancelBtn} onClick={() => setShowLinksModal(false)}>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelBtn} onClick={() => setShowLinksModal(false)}>
                 Cancelar
               </button>
-              <button style={styles.saveBtn} onClick={saveLinks}>
+              <button className={styles.saveBtn} onClick={saveLinks}>
                 Guardar
               </button>
             </div>
@@ -384,33 +361,3 @@ export default function MyProfile() {
     </>
   );
 }
-
-const styles: Record<string, CSSProperties> = {
-  page: { display: "flex", minHeight: "100vh", background: "#0b0f19", color: "#e5e7eb", fontFamily: "system-ui" },
-  main: { flex: 1, padding: "30px", minWidth: 0 },
-  profileHeader: { display: "flex", alignItems: "center", gap: "20px", marginBottom: "25px", flexWrap: "wrap" },
-  avatar: { width: "70px", height: "70px", borderRadius: "50%", background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "20px" },
-  name: { margin: 0, color: "#fff" },
-  role: { color: "#9ca3af", marginTop: "5px" },
-  meta: { fontSize: "13px", color: "#6b7280", marginTop: "5px" },
-  editLink: { color: "#60a5fa", cursor: "pointer", fontSize: "14px" },
-  grid: { display: "grid", gap: "20px" },
-  card: { padding: "20px", border: "1px solid #1f2937", borderRadius: "16px", background: "rgba(255,255,255,0.03)" },
-  cardHeader: { display: "flex", justifyContent: "space-between", marginBottom: "15px" },
-  catalogLink: { color: "#60a5fa", cursor: "pointer" },
-  course: { marginBottom: "16px" },
-  courseTop: { display: "flex", justifyContent: "space-between" },
-  progressBar: { height: "8px", background: "#1f2937", borderRadius: "999px" },
-  progressFill: { height: "100%", background: "#22c55e" },
-  skillCard: {display: "flex",alignItems: "center",gap: 12,padding: "12px 14px",background: "#0f172a",borderRadius: 12,border: "1px solid #1f2937",},
-  skillBadge: {width: 44,height: 44,borderRadius: 10,background: "#1e293b",display: "flex",alignItems: "center",justifyContent: "center",border: "1px solid #374151",flexShrink: 0,},
-  badges: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  badge: { padding: "6px 10px", background: "#1e293b", borderRadius: "999px", fontSize: "12px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 },
-  modal: { width: "100%", maxWidth: "500px", background: "#111827", padding: "28px", borderRadius: "20px" },
-  modalTitle: { marginBottom: "20px", color: "#fff" },
-  input: { width: "100%", padding: "12px", marginBottom: "14px", borderRadius: "10px", border: "1px solid #374151", background: "#0f172a", color: "#fff", boxSizing: "border-box" },
-  modalButtons: { display: "flex", justifyContent: "flex-end", gap: "12px" },
-  cancelBtn: { padding: "10px 16px", border: "1px solid #374151", background: "transparent", color: "#d1d5db", borderRadius: 8, cursor: "pointer" },
-  saveBtn: { padding: "10px 16px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" },
-};

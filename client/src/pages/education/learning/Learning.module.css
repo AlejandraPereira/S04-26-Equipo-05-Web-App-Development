@@ -1,0 +1,168 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  background: #0b0f19;
+  color: #fff;
+}
+
+.page.mobile {
+  flex-direction: column;
+}
+
+.page.desktop {
+  flex-direction: row;
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+/* FILTER BAR */
+.filterWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.filterBar {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+  align-items: center;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.searchBox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #111827;
+  border: 1px solid #1f2937;
+}
+
+.searchInput {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+}
+
+.dropdown {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #111827;
+  color: #fff;
+  border: 1px solid #1f2937;
+}
+
+/* SECTIONS */
+.sectionTitle {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 15px;
+}
+
+/* CARD */
+.card {
+  background: #111827;
+  border-radius: 14px;
+  padding: 15px;
+  border: 1px solid #1f2937;
+}
+
+.cardImage {
+  width: 100%;
+  height: 140px;
+  border-radius: 12px;
+  background: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #9ca3af;
+}
+
+.levelBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #000;
+}
+
+.cardTitle {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.cardDesc {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.skills {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.skill {
+  font-size: 10px;
+  background: #1f2937;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.progressText {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-top: 10px;
+  color: #9ca3af;
+}
+
+.progressBar {
+  height: 6px;
+  background: #1f2937;
+  border-radius: 999px;
+  margin-top: 5px;
+}
+
+.progressFill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 999px;
+}
+
+.btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}

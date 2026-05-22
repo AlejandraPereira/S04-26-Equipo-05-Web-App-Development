@@ -1,0 +1,175 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  background: #0b0f19;
+  color: #fff;
+  font-family: system-ui;
+}
+
+.main {
+  flex: 1;
+  padding: 24px;
+  min-width: 0;
+}
+
+.header { margin-bottom: 24px; }
+.header h1 { margin: 0; font-size: 28px; }
+.header p { margin-top: 6px; color: #9ca3af; }
+
+.successBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  margin-bottom: 24px;
+  background: rgba(22,163,74,0.1);
+  border: 1px solid rgba(22,163,74,0.3);
+}
+
+.successTitle { margin: 0; font-weight: 700; color: #4ade80; font-size: 15px; }
+.successSub { margin: 0; font-size: 13px; color: #6b7280; }
+
+.formCard {
+  background: #0d1117;
+  border: 1px solid #1f2937;
+  border-radius: 20px;
+  padding: 32px 28px;
+}
+
+.formCard h2 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+.formCard > p { margin: 0 0 28px; color: #6b7280; font-size: 14px; }
+
+.form { display: flex; flex-direction: column; gap: 20px; }
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: #111827;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus { border-color: #2563eb; }
+
+.inputError { border-color: #dc2626 !important; }
+
+.textarea {
+  width: 100%;
+  height: 140px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: #111827;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: system-ui;
+}
+
+.textarea:focus { border-color: #2563eb; }
+.textareaShort { height: 120px; }
+
+.salarioRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.salarioNote { margin: 6px 0 0; font-size: 12px; color: #4b5563; }
+
+.modalidadGroup { display: flex; gap: 8px; }
+
+.modalidadBtn {
+  flex: 1;
+  padding: 11px 0;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.modalidadBtn:hover { border-color: #2563eb; color: #60a5fa; }
+
+.modalidadActive {
+  border-color: #2563eb !important;
+  background: rgba(37,99,235,0.15) !important;
+  color: #60a5fa !important;
+}
+
+.error { color: #dc2626; font-size: 12px; margin-top: 6px; margin-left: 2px; }
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid #1f2937;
+}
+
+.btnClear {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btnSubmit {
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* TIPS */
+.tipsCard {
+  background: #0d1117;
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.tipsTitle {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tips { display: flex; flex-direction: column; gap: 18px; }
+
+.tip {
+  border-left: 2px solid #1f2937;
+  padding-left: 14px;
+}
+
+.tipTitle { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: #e2e8f0; }
+.tipDesc { margin: 0; font-size: 12px; color: #6b7280; line-height: 1.6; }

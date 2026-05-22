@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import styles from "./marketplace.module.css";
 
 type Job = {
   id: string;
@@ -79,73 +80,49 @@ export default function Marketplace() {
   });
 
   return (
-    <div style={{
-      display: "flex", minHeight: "100vh",
-      background: "#0b0f19", color: "#fff",
-      flexDirection: isMobile ? "column" : "row",
-    }}>
+    <div className={`${styles.wrapper} ${isMobile ? styles.mobile : styles.desktop}`}>
       <Sidebar />
 
-      <div style={{ flex: 1, padding: 24, minWidth: 0 }}>
+      <div className={styles.content}>
         <TopBar showLogo placeholder="Buscar jobs, empresas o skills..." />
 
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 700 }}>Marketplace</h1>
-          <p style={{ marginTop: 8, color: "#9ca3af" }}>
-            Explora oportunidades laborales y encuentra tu próximo trabajo.
-          </p>
+        <div className={styles.header}>
+          <h1>Marketplace</h1>
+          <p>Explora oportunidades laborales y encuentra tu próximo trabajo.</p>
         </div>
 
         {/* FILTER BAR */}
-        <div style={{ display: "flex", gap: 10, margin: "0 0 24px 0", alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, background: "#111827", border: "1px solid #1f2937" }}>
+        <div className={styles.filterBar}>
+          <div className={styles.searchBox}>
             <input
-              style={{ width: "100%", border: "none", outline: "none", background: "transparent", color: "#fff" }}
+              className={styles.searchInput}
               placeholder="Buscar ofertas, empresas o skills..."
             />
           </div>
-            <select style={{ padding: "10px 12px", borderRadius: 10, background: "#111827", color: "#fff", border: "1px solid #1f2937" }}>
-              <option>Relevancia</option>
-              <option>Más recientes</option>
-              <option>Más antiguos</option>
-            </select>
-            <button style={{ padding: "10px 20px", borderRadius: 10, background: "#2563eb", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap" }}>
-              Buscar empleo
-            </button>
-          </div>
+          <select className={styles.sortSelect}>
+            <option>Relevancia</option>
+            <option>Más recientes</option>
+            <option>Más antiguos</option>
+          </select>
+          <button className={styles.searchButton}>Buscar empleo</button>
+        </div>
 
         {/* LAYOUT */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "280px minmax(0, 900px)",
-          gap: 24,
-          alignItems: "start",
-          justifyContent: "start",
-        }}>
-          {/* FILTERS */}
-          <div style={{
-            border: "1px solid #1f2937",
-            borderRadius: 20,
-            background: "rgba(255,255,255,0.03)",
-            padding: 20,
-            position: isMobile ? "relative" : "sticky",
-            top: 20,
-            height: "fit-content",
-          }}>
-            <h3 style={{ marginTop: 0, marginBottom: 24, fontSize: 20 }}>Filtros</h3>
+        <div className={`${styles.layout} ${isMobile ? styles.mobile : styles.desktop}`}>
+          {/* FILTERS PANEL */}
+          <div className={`${styles.filtersPanel} ${isMobile ? "" : styles.sticky}`}>
+            <h3>Filtros</h3>
 
-            <div style={{ marginBottom: 28 }}>
-              <p style={{ marginBottom: 14, color: "#9ca3af", fontSize: 14, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>
-                Skills
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className={styles.filterGroup}>
+              <p className={styles.filterGroupLabel}>Skills</p>
+              <div className={styles.filterOptions}>
                 {["React", "Node", "UX", "TypeScript"].map((skill) => (
-                  <label key={skill} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", color: "#e5e7eb", fontSize: 15 }}>
+                  <label key={skill} className={styles.filterLabel}>
                     <input
                       type="checkbox"
+                      className={styles.filterCheckbox}
                       checked={filters.skills.includes(skill)}
                       onChange={() => toggleSkill(skill)}
-                      style={{ width: 16, height: 16, accentColor: "#2563eb", cursor: "pointer" }}
                     />
                     {skill}
                   </label>
@@ -153,18 +130,16 @@ export default function Marketplace() {
               </div>
             </div>
 
-            <div>
-              <p style={{ marginBottom: 14, color: "#9ca3af", fontSize: 14, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>
-                Tipo
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className={styles.filterGroup}>
+              <p className={styles.filterGroupLabel}>Tipo</p>
+              <div className={styles.filterOptions}>
                 {["Remote", "Onsite"].map((type) => (
-                  <label key={type} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", color: "#e5e7eb", fontSize: 15 }}>
+                  <label key={type} className={styles.filterLabel}>
                     <input
                       type="checkbox"
+                      className={styles.filterCheckbox}
                       checked={filters.types.includes(type)}
                       onChange={() => toggleType(type)}
-                      style={{ width: 16, height: 16, accentColor: "#2563eb", cursor: "pointer" }}
                     />
                     {type}
                   </label>
@@ -174,84 +149,50 @@ export default function Marketplace() {
           </div>
 
           {/* JOB LIST */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {loading && <p style={{ color: "#9ca3af" }}>Cargando jobs...</p>}
+          <div className={styles.jobList}>
+            {loading && <p className={styles.loadingText}>Cargando jobs...</p>}
 
             {!loading && filteredJobs.map((job) => (
-              <div key={job.id} style={{
-                padding: 22, borderRadius: 20,
-                border: "1px solid #1f2937",
-                background: "rgba(255,255,255,0.03)",
-                transition: "0.2s",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", gap: 14 }}>
-                    <div style={{
-                      width: 52, height: 52, borderRadius: 14,
-                      background: "#172033", display: "flex",
-                      alignItems: "center", justifyContent: "center",
-                      fontSize: 22, flexShrink: 0,
-                    }}>
-                      🏢
-                    </div>
+              <div key={job.id} className={styles.jobCard}>
+                <div className={styles.jobCardTop}>
+                  <div className={styles.jobInfo}>
+                    <div className={styles.companyLogo}>🏢</div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: 20 }}>{job.title}</h3>
-                      <p style={{ marginTop: 6, color: "#9ca3af", fontSize: 14 }}>
-                        {job.company ?? "Company"}
-                      </p>
+                      <h3 className={styles.jobTitle}>{job.title}</h3>
+                      <p className={styles.companyName}>{job.company ?? "Company"}</p>
                     </div>
                   </div>
-
-                  <span style={{
-                    padding: "8px 12px", borderRadius: 999,
-                    background: job.isRemote ? "rgba(37,99,235,0.15)" : "rgba(34,197,94,0.15)",
-                    color: job.isRemote ? "#60a5fa" : "#4ade80",
-                    fontSize: 13, fontWeight: 600,
-                  }}>
+                  <span className={job.isRemote ? styles.badgeRemote : styles.badgeOnsite}>
                     {job.isRemote ? "Remote" : "Onsite"}
                   </span>
                 </div>
 
-                <p style={{ marginTop: 18, lineHeight: 1.6, color: "#d1d5db" }}>
-                  {job.description}
-                </p>
+                <p className={styles.jobDescription}>{job.description}</p>
 
-                <div style={{
-                  marginTop: 22, paddingTop: 18,
-                  borderTop: "1px solid #1f2937",
-                  display: "flex", justifyContent: "space-between",
-                  alignItems: "center", gap: 20, flexWrap: "wrap",
-                }}>
-                  <div style={{ color: "#9ca3af", fontSize: 13, lineHeight: 1.7 }}>
+                <div className={styles.jobFooter}>
+                  <div className={styles.jobMeta}>
                     📍 {job.location}
                     <br />
                     💰 ${job.minSalary.toLocaleString()} - ${job.maxSalary.toLocaleString()}
                   </div>
-
-                  <div style={{ display: "flex", gap: 12, width: isMobile ? "100%" : "auto" }}>
-                    <button style={{
-                      flex: 1, padding: "12px 18px", borderRadius: 12,
-                      border: "none", background: "#2563eb",
-                      color: "#fff", cursor: "pointer", fontWeight: 600,
-                    }}>
-                      Ver detalles
-                    </button>
+                  <div className={`${styles.jobActions} ${isMobile ? styles.mobile : ""}`}>
+                    <button className={styles.btnDetails}>Ver detalles</button>
                   </div>
                 </div>
               </div>
             ))}
 
-            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+            <div className={styles.pagination}>
               <button
+                className={styles.pageBtn}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                style={{ padding: 10, borderRadius: 10, background: "#1f2937", color: "#fff", border: "none", cursor: "pointer" }}
               >
                 Anterior
               </button>
-              <span style={{ alignSelf: "center" }}>Page {page}</span>
+              <span className={styles.pageLabel}>Page {page}</span>
               <button
+                className={styles.pageBtn}
                 onClick={() => setPage((p) => p + 1)}
-                style={{ padding: 10, borderRadius: 10, background: "#1f2937", color: "#fff", border: "none", cursor: "pointer" }}
               >
                 Siguiente
               </button>
