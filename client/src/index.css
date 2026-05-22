@@ -1,0 +1,143 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+body {
+  background: #0f172a;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ================= GLOBAL APP ================= */
+
+.appPage {
+  display: flex;
+  min-height: 100vh;
+  background: #0b0f19;
+  color: white;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+  width: 220px;
+  padding: 20px;
+  background: #0b0f19;
+  border-right: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.logo {
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.sideBtn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.sideBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.activeBtn {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
+  border-left: 3px solid #2563eb;
+}
+
+.sidebarFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logoutBtn {
+  color: #ef4444;
+}
+
+/* ================= MAIN ================= */
+
+.mainContent {
+  flex: 1;
+  padding: 24px;
+  min-width: 0;
+}
+
+/* ================= TOPBAR ================= */
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 240px;
+  max-width: 600px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #1f2937;
+  background: #0f172a;
+  color: white;
+  outline: none;
+}
+
+.topIcons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profileAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .appPage {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #1f2937;
+  }
+
+  .mainContent {
+    padding: 18px;
+  }
+}
