@@ -20,7 +20,7 @@ const steps = [
   },
 ];
 
-// Mapeo de respuestas a skills con scores
+// Mappingskills with scores
 const answerToSkills: Record<string, { name: string; score: number }[]> = {
   "Liderazgo":               [{ name: "Liderazgo", score: 85 }, { name: "Gestión del Cambio", score: 70 }],
   "RRHH":                    [{ name: "Gestión de Personas", score: 85 }, { name: "Comunicación", score: 75 }],
@@ -54,7 +54,7 @@ export default function DiagnosticPage() {
   };
 
   const handleSubmit = () => {
-    // Construir skills desde las respuestas
+    // TO DO:Construir skills desde las respuestas
     const skillMap: Record<string, number[]> = {};
     selected.forEach((answer) => {
       const mapped = answerToSkills[answer] ?? [];

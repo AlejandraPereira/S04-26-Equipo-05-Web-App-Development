@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -105,7 +105,7 @@ export default function Login() {
   );
 }
 
-const styles: any = {
+const styles: Record<string, CSSProperties> = {
   container: {
     display: "flex",
     flexDirection: "column",

@@ -9,7 +9,7 @@ const API = "http://localhost:3008";
 type Profile = {
   id?: string;
   userId: string;
-  username: string |null;
+  username: string |null; // add to backend
   headline: string | null;
   summary: string | null;
   location: string | null;
@@ -402,26 +402,8 @@ const styles: Record<string, CSSProperties> = {
   courseTop: { display: "flex", justifyContent: "space-between" },
   progressBar: { height: "8px", background: "#1f2937", borderRadius: "999px" },
   progressFill: { height: "100%", background: "#22c55e" },
-  skillCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "12px 14px",
-    background: "#0f172a",
-    borderRadius: 12,
-    border: "1px solid #1f2937",
-  },
-  skillBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    background: "#1e293b",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "1px solid #374151",
-    flexShrink: 0,
-  },
+  skillCard: {display: "flex",alignItems: "center",gap: 12,padding: "12px 14px",background: "#0f172a",borderRadius: 12,border: "1px solid #1f2937",},
+  skillBadge: {width: 44,height: 44,borderRadius: 10,background: "#1e293b",display: "flex",alignItems: "center",justifyContent: "center",border: "1px solid #374151",flexShrink: 0,},
   badges: { display: "flex", gap: "8px", flexWrap: "wrap" },
   badge: { padding: "6px 10px", background: "#1e293b", borderRadius: "999px", fontSize: "12px" },
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 },

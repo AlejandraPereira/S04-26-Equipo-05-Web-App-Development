@@ -51,7 +51,7 @@ export default function CompanyProfile() {
   };
 
   const handleSave = () => {
-    // TODO: PATCH /companies/:id { ...form }
+    // TODO: PUT /companies/:id { ...form }
     setProfile(form);
     setEditing(false);
     setSaved(true);

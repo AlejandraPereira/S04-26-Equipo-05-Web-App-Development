@@ -73,7 +73,7 @@ export default function Dashboard() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 25 }}>
 
-          {/* CURSOS EN PROGRESO */}
+          {/* COURSES IN PROGRESS */}
           <section>
             <h2 style={{ marginBottom: 12 }}>📚 En progreso</h2>
             <div
@@ -133,7 +133,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* RECOMENDADOS */}
+          {/* RECOMMENDED */}
           <section>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2>⭐ Recomendados</h2>

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 type QuestionType = "multiple" | "truefalse";
 
 interface Option {
@@ -32,8 +31,7 @@ interface QuizData {
   questions: Question[];
 }
 
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
-// Replace with API call: GET /quizzes/:quizId
+// TODO: GET /quizzes/:quizId
 const quizMock: QuizData = {
   id: "quiz-mod2-mid",
   title: "Quiz: Presencia Digital",
@@ -108,10 +106,10 @@ const quizMock: QuizData = {
   ],
 };
 
-// ─── Component ─────────────────────────────────────────────────────────────────
+//Component
 export default function QuizPage() {
   const navigate = useNavigate();
-  // const { quizId } = useParams(); // use to fetch from API
+  // const { quizId } = useParams();  use to fetch from API
 
   const quiz = quizMock;
   const total = quiz.questions.length;
@@ -165,7 +163,7 @@ export default function QuizPage() {
     setPhase("quiz");
   };
 
-  // ── Styles helpers ────────────────────────────────────────────────────────
+  //Styles helpers 
   const optionBg = (opt: Option) => {
     if (!confirmed) {
       return selected === opt.id
@@ -200,7 +198,7 @@ export default function QuizPage() {
     return "#4b5563";
   };
 
-  // ── RESULT SCREEN ──────────────────────────────────────────────────────────
+  // RESULT SCREEN 
   if (phase === "result") {
     return (
       <div style={{ display: "flex", minHeight: "100vh", background: "#0b0f19", color: "#e5e7eb", fontFamily: "system-ui" }}>
@@ -209,7 +207,6 @@ export default function QuizPage() {
       
           <TopBar showLogo placeholder="Buscar cursos..." />
 
-          {/* XP banner */}
           {showXp && (
             <div style={{
               position: "fixed", top: 80, right: 24, zIndex: 999,
@@ -365,7 +362,7 @@ export default function QuizPage() {
     );
   }
 
-  // ── QUIZ SCREEN ────────────────────────────────────────────────────────────
+  // QUIZ SCREEN 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#0b0f19", color: "#e5e7eb", fontFamily: "system-ui" }}>
       <Sidebar />
