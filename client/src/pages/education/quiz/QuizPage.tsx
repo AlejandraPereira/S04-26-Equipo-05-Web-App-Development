@@ -6,6 +6,8 @@ import styles from "./QuizPage.module.css";
 
 type QuestionType = "multiple" | "truefalse";
 
+// URL TO TRY -> http://localhost:5173/course/react/quiz/mod2
+
 interface Option {
   id: string;
   text: string;
