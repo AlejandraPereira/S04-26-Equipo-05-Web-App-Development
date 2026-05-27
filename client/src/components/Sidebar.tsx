@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
-import "./sidebar.css";
+import "./Sidebar.css";
 
 const profesionalMenu = [
   { label: "Dashboard",   path: "/dashboard" },
