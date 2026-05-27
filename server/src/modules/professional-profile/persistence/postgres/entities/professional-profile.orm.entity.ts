@@ -5,6 +5,15 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
+export interface WorkExperienceEntry {
+  id: string;
+  title: string;
+  company: string;
+  startDate: string;
+  endDate: string | null;
+  description: string;
+}
+
 @Entity('professional_profiles')
 export class ProfessionalProfileOrmEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -16,6 +25,13 @@ export class ProfessionalProfileOrmEntity {
     unique: true,
   })
   userId!: string;
+
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  username?: string;
 
   @Column({
     type: 'varchar',
@@ -58,6 +74,14 @@ export class ProfessionalProfileOrmEntity {
     default: 0,
   })
   completionScore!: number;
+
+  @Column({
+    name: 'work_experiences',
+    type: 'jsonb',
+    nullable: true,
+    default: [],
+  })
+  workExperiences!: WorkExperienceEntry[];
 
   @CreateDateColumn({
     name: 'last_updated',

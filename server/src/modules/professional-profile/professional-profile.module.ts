@@ -1,30 +1,21 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
+import { AuthModule } from '../auth/auth.module';
 import { ProfessionalProfileController } from './presentation/http-server/controllers/professional-profile.controller';
+import { WorkExperienceController } from './presentation/http-server/controllers/work-experience.controller';
 import { ProfessionalProfileOrmEntity } from './persistence/postgres/entities/professional-profile.orm.entity';
+import { UserOrmEntity } from '../auth/persistence/postgres/entities/user.orm.entity';
 import { ProfessionalProfileProviders } from './shared/providers';
+import { WorkExperienceService } from './core/services/work-experience.service';
 
 @Module({
   imports: [
     CqrsModule,
-    // Moises: Las conexion a base datos las subi al modulo principal, por lo que ahora podemos utilizar 
-    // esa conexion global en toda la app, ya no es necesario tener conexion por modulo, cuando leas esto,
-    // confirma nada mas felipe y puedes eliminar este comentario. saludos :)...
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => ({
-    //     type: 'postgres',
-    //     url: configService.get<string>('DATABASE_URL'),
-    //     autoLoadEntities: true,
-    //     synchronize: true,
-    //   }),
-    // }),
-
-    TypeOrmModule.forFeature([ProfessionalProfileOrmEntity]),
+    TypeOrmModule.forFeature([ProfessionalProfileOrmEntity, UserOrmEntity]),
+    AuthModule,
   ],
-  providers: ProfessionalProfileProviders,
-  controllers: [ProfessionalProfileController],
+  providers: [...ProfessionalProfileProviders, WorkExperienceService],
+  controllers: [ProfessionalProfileController, WorkExperienceController],
 })
 export class ProfessionalProfileModule {}
