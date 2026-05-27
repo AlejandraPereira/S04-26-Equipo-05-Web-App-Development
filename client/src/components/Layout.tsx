@@ -1,8 +1,6 @@
 import Sidebar from "./Sidebar";
 import { Outlet } from "react-router-dom";
 
-const USER_TYPE: "profesional" | "empresa" = "empresa";
-
 export default function Layout() {
   return (
     <div
@@ -14,7 +12,7 @@ export default function Layout() {
         fontFamily: "system-ui",
       }}
     >
-      <Sidebar userType={USER_TYPE} />
+      <Sidebar />
       <div style={{ flex: 1 }}>
         <Outlet />
       </div>

@@ -157,7 +157,7 @@ export default function JobOffers() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#0b0f19", color: "#fff", fontFamily: "system-ui", flexDirection: isMobile ? "column" : "row" }}>
-      <Sidebar userType="empresa" />
+      <Sidebar />
 
       <div style={{ flex: 1, padding: "24px", minWidth: 0 }}>
         <TopBar showLogo placeholder="Buscar ofertas..." />
