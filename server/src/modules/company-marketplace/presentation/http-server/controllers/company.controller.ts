@@ -4,7 +4,10 @@ import {
   Get,
   InternalServerErrorException,
   Post,
+  Put,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CompanyDTO } from 'src/modules/company-marketplace/core/entities/company/dto/Company.dto';
 import { Paginated } from 'src/modules/company-marketplace/core/shared/helpers/paginated.helper';
@@ -12,12 +15,15 @@ import { CreateCompanyDTO } from 'src/modules/company-marketplace/core/entities/
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateCompanyCommand } from 'src/modules/company-marketplace/core/use-cases/entrypoint/commands/company/create-company/CreateCompany.command';
 import { GetCompaniesQuery } from 'src/modules/company-marketplace/core/use-cases/entrypoint/queries/company/get-companies/GetCompany.query';
+import { JwtAuthGuard } from 'src/modules/auth/core/guards/jwt-auth.guard';
+import { CompanyDirectService, UpsertCompanyDto } from 'src/modules/company-marketplace/core/services/company-direct.service';
 
 @Controller('company')
 export class CompanyController {
   constructor(
     private commandBus: CommandBus,
     private queryBus: QueryBus,
+    private companyDirectService: CompanyDirectService,
   ) {}
 
   @Post('create')
@@ -49,5 +55,17 @@ export class CompanyController {
       console.error(error);
       throw new InternalServerErrorException('Failed to get companies');
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('mine')
+  async getMyCompany(@Request() req: any) {
+    return this.companyDirectService.findByUserId(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('mine')
+  async upsertMyCompany(@Request() req: any, @Body() dto: UpsertCompanyDto) {
+    return this.companyDirectService.upsert(req.user.id, dto);
   }
 }
