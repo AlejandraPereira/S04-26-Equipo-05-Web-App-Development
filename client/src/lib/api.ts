@@ -1,4 +1,6 @@
-const BASE_URL = 'http://localhost:3008';
+// En dev: http://localhost:3008  (sin VITE_API_URL en .env local)
+// En prod (Docker): /api  → Nginx hace proxy a server:3008 sin prefijo
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3008';
 
 function getToken(): string | null {
   return localStorage.getItem('access_token');
