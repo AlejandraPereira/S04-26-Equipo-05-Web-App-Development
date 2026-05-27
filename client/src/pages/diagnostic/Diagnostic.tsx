@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { api } from "../../lib/api";
+import { useApp } from "../../context/AppContext";
 
 const steps = [
   {
@@ -20,7 +22,6 @@ const steps = [
   },
 ];
 
-// Mappingskills with scores
 const answerToSkills: Record<string, { name: string; score: number }[]> = {
   "Liderazgo":               [{ name: "Liderazgo", score: 85 }, { name: "Gestión del Cambio", score: 70 }],
   "RRHH":                    [{ name: "Gestión de Personas", score: 85 }, { name: "Comunicación", score: 75 }],
@@ -43,9 +44,9 @@ const answerToSkills: Record<string, { name: string; score: number }[]> = {
 export default function DiagnosticPage() {
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<string[]>(Array(steps.length).fill(""));
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const userName: string = location.state?.name ?? "";
+  const { user } = useApp();
 
   const handleSelect = (option: string) => {
     const updated = [...selected];
@@ -53,8 +54,7 @@ export default function DiagnosticPage() {
     setSelected(updated);
   };
 
-  const handleSubmit = () => {
-    // TO DO:Construir skills desde las respuestas
+  const handleSubmit = async () => {
     const skillMap: Record<string, number[]> = {};
     selected.forEach((answer) => {
       const mapped = answerToSkills[answer] ?? [];
@@ -69,7 +69,16 @@ export default function DiagnosticPage() {
       score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
     }));
 
-    navigate("/results", { state: { skills, name: userName, answers: selected } });
+    setIsSubmitting(true);
+    try {
+      await api.post('/diagnosis/submit', { answers: selected, skills });
+    } catch {
+      // no blocking — navigate anyway
+    } finally {
+      setIsSubmitting(false);
+    }
+
+    navigate("/results", { state: { skills, name: user?.fullName ?? "" } });
   };
 
   const currentStep = steps[step];
@@ -80,9 +89,9 @@ export default function DiagnosticPage() {
       {/* NAV */}
       <div style={styles.nav}>
         <div style={styles.logo}>ReConecta45</div>
-        {userName && (
+        {user && (
           <p style={{ color: "#9ca3af", fontSize: 14, margin: 0 }}>
-            Hola, <strong style={{ color: "#fff" }}>{userName}</strong> 👋
+            Hola, <strong style={{ color: "#fff" }}>{user.fullName.split(" ")[0]}</strong> 👋
           </p>
         )}
       </div>
@@ -98,7 +107,6 @@ export default function DiagnosticPage() {
 
       {/* CARD */}
       <section style={styles.card}>
-        {/* PROGRESS */}
         <div style={styles.progressWrapper}>
           <div style={styles.progressBar}>
             <div style={{ ...styles.progressFill, width: `${((step + 1) / steps.length) * 100}%` }} />
@@ -124,7 +132,6 @@ export default function DiagnosticPage() {
           ))}
         </div>
 
-        {/* ACTIONS */}
         <div style={styles.actions}>
           {step > 0 ? (
             <button style={styles.secondaryButton} onClick={() => setStep(step - 1)}>
@@ -142,11 +149,11 @@ export default function DiagnosticPage() {
             </button>
           ) : (
             <button
-              style={{ ...styles.primaryButton, opacity: canContinue ? 1 : 0.5 }}
-              disabled={!canContinue}
+              style={{ ...styles.primaryButton, opacity: canContinue && !isSubmitting ? 1 : 0.5 }}
+              disabled={!canContinue || isSubmitting}
               onClick={handleSubmit}
             >
-              Ver resultado
+              {isSubmitting ? "Guardando..." : "Ver resultado"}
             </button>
           )}
         </div>
@@ -173,14 +180,8 @@ const styles: Record<string, React.CSSProperties> = {
   progressText: { marginTop: "10px", fontSize: "14px", color: "#9ca3af" },
   question: { fontSize: "28px", color: "#fff", marginBottom: "24px" },
   options: { display: "flex", flexDirection: "column", gap: "14px" },
-  option: {
-    padding: "18px", borderRadius: "14px", border: "1px solid #374151",
-    background: "rgba(255,255,255,0.03)", color: "#fff", cursor: "pointer",
-    textAlign: "left", fontSize: "15px", transition: "all 0.15s",
-  },
-  optionSelected: {
-    border: "1px solid #2563eb", background: "rgba(37,99,235,0.12)", color: "#60a5fa",
-  },
+  option: { padding: "18px", borderRadius: "14px", border: "1px solid #374151", background: "rgba(255,255,255,0.03)", color: "#fff", cursor: "pointer", textAlign: "left", fontSize: "15px", transition: "all 0.15s" },
+  optionSelected: { border: "1px solid #2563eb", background: "rgba(37,99,235,0.12)", color: "#60a5fa" },
   actions: { marginTop: "40px", display: "flex", justifyContent: "space-between" },
   primaryButton: { background: "#2563eb", border: "none", color: "white", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontWeight: "600", fontSize: "15px" },
   secondaryButton: { background: "transparent", border: "1px solid #374151", color: "white", padding: "12px 18px", borderRadius: "10px", cursor: "pointer" },
