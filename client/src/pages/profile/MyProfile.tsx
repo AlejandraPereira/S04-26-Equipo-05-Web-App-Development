@@ -1,67 +1,75 @@
-import { CSSProperties, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import { useApp } from "../../context/AppContext";
+import { api } from "../../lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
-const USER_ID = "00000000-0000-0000-0000-000000000001";
-const API = "http://localhost:3008";
-
+/* ─── Types ─── */
 type Profile = {
-  id?: string;
-  userId: string;
-  username: string |null; // add to backend
-  headline: string | null;
-  summary: string | null;
-  location: string | null;
-  yearsExperience: number | null;
-  linkedinUrl: string | null;
-  completionScore: number;
-  lastUpdated: Date;
+  id?: string; userId: string; username: string | null; headline: string | null;
+  summary: string | null; location: string | null; yearsExperience: number | null;
+  linkedinUrl: string | null; completionScore: number; lastUpdated: Date;
 };
+type Skill         = { name: string; score: number };
+type CourseProgress = { id: string; title: string; emoji: string; progress: number };
+type QuizBadge     = { id: string; score: number; passed: boolean; correctCount: number; totalQuestions: number; course: { id: string; title: string; emoji: string } };
+type WorkExp       = { id: string; title: string; company: string; startDate: string; endDate: string | null; description: string };
 
-const skills = [
-  { name: "Liderazgo", category: "Socioemocional", level: "Avanzado", icon: "🧭" },
-  { name: "Comunicación", category: "Socioemocional", level: "Avanzado", icon: "💬" },
-  { name: "Herramientas IA", category: "Digital", level: "Básico", icon: "🤖" },
-  { name: "Marca Personal", category: "Digital", level: "Intermedio", icon: "🔗" },
-  { name: "Gestión del Cambio", category: "Cognitiva", level: "Intermedio", icon: "🔄" },
-  { name: "Office / Google Suite", category: "Digital", level: "Avanzado", icon: "📊" },
-];
+const levelColor = (s: number) => s >= 75 ? "text-success" : s >= 50 ? "text-primary" : "text-warning";
+const levelLabel = (s: number) => s >= 75 ? "Avanzado" : s >= 50 ? "Intermedio" : "Básico";
+const levelVariant = (s: number): "success" | "default" | "warning" =>
+  s >= 75 ? "success" : s >= 50 ? "default" : "warning";
 
-const levelColor: Record<string, string> = {
-  "Básico": "#f59e0b",
-  "Intermedio": "#3b82f6",
-  "Avanzado": "#22c55e",
-};
+const emptyExp = (): WorkExp => ({ id: "", title: "", company: "", startDate: "", endDate: null, description: "" });
 
-const courses = [
-  { name: "Fundamentos de IA", progress: 60 },
-  { name: "Marca Personal", progress: 35 },
-  { name: "Herramientas Digitales", progress: 80 },
-];
+/* ─── Modal wrapper ─── */
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-lg bg-card border border-border rounded-2xl p-7 max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>✕</Button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 
-const badges = ["Perfil Completo", "Primer Curso", "Explorador Digital"];
-
+/* ─── Component ─── */
 export default function MyProfile() {
   const navigate = useNavigate();
+  const { user } = useApp();
   const [isMobile, setIsMobile] = useState(false);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile]   = useState<Profile | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [copied, setCopied]     = useState(false);
+
+  const [skills, setSkills]     = useState<Skill[]>([]);
+  const [courses, setCourses]   = useState<CourseProgress[]>([]);
+  const [badges, setBadges]     = useState<QuizBadge[]>([]);
+  const [workExps, setWorkExps] = useState<WorkExp[]>([]);
 
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showLinksModal, setShowLinksModal] = useState(false);
+  const [showLinksModal, setShowLinksModal]     = useState(false);
+  const [showExpModal, setShowExpModal]         = useState(false);
+  const [editingExp, setEditingExp]             = useState<WorkExp>(emptyExp());
 
-  const [editProfile, setEditProfile] = useState({
-    username: "",
-    headline: "",
-    location: "",
-    yearsExperience: "",
-    summary: "",
-  });
-
-  const [editLinks, setEditLinks] = useState({
-    linkedinUrl: "",
-  });
+  const [editProfile, setEditProfile] = useState({ username: "", headline: "", location: "", yearsExperience: "", summary: "" });
+  const [editLinks, setEditLinks]     = useState({ linkedinUrl: "" });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -71,346 +79,395 @@ export default function MyProfile() {
   }, []);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${API}/professional-profile/${USER_ID}`);
-        if (res.ok) {
-          const data = await res.json();
-          setProfile(data);
-          setEditProfile({
-            username: data.username ?? "",
-            headline: data.headline ?? "",
-            location: data.location ?? "",
-            yearsExperience: data.yearsExperience?.toString() ?? "",
-            summary: data.summary ?? "",
-          });
-          setEditLinks({ linkedinUrl: data.linkedinUrl ?? "" });
-        }
-      } catch (err) {
-        console.error("Error loading profile:", err);
-      } finally {
-        setLoading(false);
+    if (!user) return;
+    Promise.all([
+      api.get<Profile>(`/professional-profile/${user.id}`).catch(() => null),
+      api.get<{ skills: Skill[] }>("/diagnosis/result").catch(() => null),
+      api.get<CourseProgress[]>("/learning/my-courses").catch(() => []),
+      api.get<QuizBadge[]>("/learning/quiz-results/mine").catch(() => []),
+      api.get<WorkExp[]>(`/professional-profile/${user.id}/work-experiences`).catch(() => []),
+    ]).then(([prof, diag, coursesData, quizData, expData]) => {
+      if (prof) {
+        setProfile(prof);
+        setEditProfile({
+          username: prof.username ?? "", headline: prof.headline ?? "",
+          location: prof.location ?? "", yearsExperience: prof.yearsExperience?.toString() ?? "",
+          summary: prof.summary ?? "",
+        });
+        setEditLinks({ linkedinUrl: prof.linkedinUrl ?? "" });
       }
-    };
-    fetchProfile();
-  }, []);
+      setSkills(diag?.skills ?? []);
+      setCourses((coursesData as CourseProgress[]).filter(c => c.progress > 0));
+      setBadges((quizData as QuizBadge[]).filter(q => q.passed));
+      setWorkExps(expData as WorkExp[]);
+    }).finally(() => setLoading(false));
+  }, [user]);
 
   const saveProfile = async () => {
+    if (!user) return;
+    const body = {
+      username: editProfile.username || null, headline: editProfile.headline || null,
+      location: editProfile.location || null, summary: editProfile.summary || null,
+      yearsExperience: editProfile.yearsExperience ? Number(editProfile.yearsExperience) : null,
+    };
     try {
-      const body = {
-        username: editProfile.username || null,
-        headline: editProfile.headline || null,
-        location: editProfile.location || null,
-        summary: editProfile.summary || null,
-        yearsExperience: editProfile.yearsExperience
-          ? Number(editProfile.yearsExperience)
-          : null,
-      };
-
-      if (profile?.id) {
-        const res = await fetch(`${API}/professional-profile/${profile.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        setProfile(data);
-      } else {
-        const res = await fetch(`${API}/professional-profile/create`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...body, userId: USER_ID }),
-        });
-        const data = await res.json();
-        setProfile(data);
-      }
-
-      setShowProfileModal(false);
-    } catch (err) {
-      console.error("Error saving profile:", err);
-    }
+      const data = profile?.id
+        ? await api.patch<Profile>(`/professional-profile/${profile.id}`, body)
+        : await api.post<Profile>(`/professional-profile/create`, { ...body, userId: user.id });
+      setProfile(data); setShowProfileModal(false);
+    } catch (err) { console.error(err); }
   };
 
   const saveLinks = async () => {
+    if (!user) return;
     try {
-      const body = { linkedinUrl: editLinks.linkedinUrl || null };
-
-      if (profile?.id) {
-        const res = await fetch(`${API}/professional-profile/${profile.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        setProfile(data);
-      } else {
-        const res = await fetch(`${API}/professional-profile/create`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...body, userId: USER_ID }),
-        });
-        const data = await res.json();
-        setProfile(data);
-      }
-
-      setShowLinksModal(false);
-    } catch (err) {
-      console.error("Error saving links:", err);
-    }
+      const data = profile?.id
+        ? await api.patch<Profile>(`/professional-profile/${profile.id}`, { linkedinUrl: editLinks.linkedinUrl || null })
+        : await api.post<Profile>(`/professional-profile/create`, { linkedinUrl: editLinks.linkedinUrl || null, userId: user.id });
+      setProfile(data); setShowLinksModal(false);
+    } catch (err) { console.error(err); }
   };
 
-  const initials = "AP";
+  const saveExp = async () => {
+    if (!user) return;
+    const updated = editingExp.id
+      ? workExps.map(e => e.id === editingExp.id ? editingExp : e)
+      : [...workExps, { ...editingExp, id: crypto.randomUUID() }];
+    try {
+      const result = await api.put<WorkExp[]>(`/professional-profile/${user.id}/work-experiences`, { workExperiences: updated });
+      setWorkExps(result); setShowExpModal(false);
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteExp = async (id: string) => {
+    if (!user) return;
+    const updated = workExps.filter(e => e.id !== id);
+    try {
+      const result = await api.put<WorkExp[]>(`/professional-profile/${user.id}/work-experiences`, { workExperiences: updated });
+      setWorkExps(result);
+    } catch (err) { console.error(err); }
+  };
+
+  const copyShareLink = async () => {
+    const url = `${window.location.origin}/perfil/${user?.id}`;
+    try { await navigator.clipboard.writeText(url); } catch { prompt("Copiá este link:", url); }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const downloadPDF = () => {
+    const name = profile?.username ?? user?.fullName ?? "Profesional";
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>CV – ${name}</title>
+<style>body{font-family:Georgia,serif;padding:48px;max-width:780px;margin:0 auto;color:#111;line-height:1.6}h1{font-size:28px;margin:0 0 4px}.headline{color:#555;font-size:15px;margin:4px 0 12px}.meta{color:#777;font-size:13px;margin-bottom:20px}h2{font-size:15px;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #2563eb;padding-bottom:6px;color:#1e40af;margin-top:28px;margin-bottom:14px}.skill{display:inline-block;margin:3px 5px 3px 0;padding:3px 12px;border:1px solid #93c5fd;border-radius:999px;font-size:12px;color:#1e40af}.job{margin-bottom:20px}.job-title{font-weight:700;font-size:15px}.job-company{color:#2563eb;font-size:14px}.job-dates{color:#777;font-size:12px;margin:2px 0}.job-desc{font-size:13px;color:#444;margin-top:4px}.badge{display:inline-block;margin:3px 5px 3px 0;padding:3px 12px;border:1px solid #16a34a;border-radius:999px;font-size:12px;color:#15803d}.footer{margin-top:40px;color:#aaa;font-size:11px;border-top:1px solid #eee;padding-top:10px}@media print{body{padding:20px}}</style>
+</head><body>
+<h1>${name}</h1>
+${profile?.headline ? `<p class="headline">${profile.headline}</p>` : ""}
+<p class="meta">${profile?.location ? `📍 ${profile.location}` : ""}${profile?.yearsExperience != null ? ` · ${profile.yearsExperience} años de experiencia` : ""}</p>
+${profile?.summary ? `<p>${profile.summary}</p>` : ""}
+${skills.length > 0 ? `<h2>Habilidades</h2><div>${skills.map(s => `<span class="skill">${s.name} — ${s.score}%</span>`).join("")}</div>` : ""}
+${workExps.length > 0 ? `<h2>Experiencia Laboral</h2>${workExps.map(exp => `<div class="job"><div class="job-title">${exp.title}</div><div class="job-company">${exp.company}</div><div class="job-dates">${exp.startDate} — ${exp.endDate ?? "Actualidad"}</div>${exp.description ? `<div class="job-desc">${exp.description}</div>` : ""}</div>`).join("")}` : ""}
+${badges.length > 0 ? `<h2>Cursos Certificados</h2><div>${badges.map(b => `<span class="badge">${b.course.emoji} ${b.course.title} — ${b.score}%</span>`).join("")}</div>` : ""}
+${profile?.linkedinUrl ? `<h2>Contacto</h2><p><a href="${profile.linkedinUrl}" style="color:#2563eb">${profile.linkedinUrl}</a></p>` : ""}
+<p class="footer">Generado con ReConecta45 · ${new Date().toLocaleDateString()}</p>
+<script>window.onload=function(){window.print()}</script>
+</body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { alert("Permití ventanas emergentes para descargar el CV"); return; }
+    w.document.write(html); w.document.close();
+  };
+
+  const initials = user ? user.fullName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() : "AP";
+
+  if (loading) {
+    return (
+      <div className={`flex min-h-screen bg-background text-foreground ${isMobile ? "flex-col" : "flex-row"}`}>
+        <Sidebar />
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <p className="text-muted-foreground">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div style={{ ...styles.page, flexDirection: isMobile ? "column" : "row" }}>
+      <div className={`flex min-h-screen bg-background text-foreground ${isMobile ? "flex-col" : "flex-row"}`}>
         <Sidebar />
 
-        <div style={styles.main}>
-          <TopBar showLogo placeholder="uscar cursos, habilidades..." />
+        <div className="flex-1 p-6 min-w-0">
+          <TopBar showLogo placeholder="Buscar cursos, habilidades..." />
 
-          {loading ? (
-            <p style={{ color: "#9ca3af" }}>Cargando perfil...</p>
-          ) : (
-            <>
-              {/* PROFILE HEADER */}
-              <div style={styles.profileHeader}>
-                <div style={styles.avatar}>{initials}</div>
+          {/* HEADER */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4 flex-wrap">
+                <Avatar className="w-20 h-20 shrink-0">
+                  <AvatarFallback className="text-2xl font-bold">{initials}</AvatarFallback>
+                </Avatar>
 
-                <div style={{ flex: 1 }}>
-                  <h1 style={styles.name}>
-                      {profile?.username ?? "Sin nombre"}
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-2xl font-bold text-foreground truncate">
+                    {profile?.username ?? user?.fullName ?? "Sin nombre"}
                   </h1>
-                  <p style={styles.role}>
-                    {profile?.headline ?? "Sin rol"}
-                  </p>
-                  <p style={styles.role}>
-                    {profile?.summary ?? "Agrega una descripción de tu perfil"}
-                  </p>
-                  <p style={styles.meta}>
-                    📍 {profile?.location ?? "Sin ubicación"} •{" "}
-                    {profile?.yearsExperience != null
-                      ? `${profile.yearsExperience} años de experiencia`
-                      : "Sin experiencia cargada"}
+                  <p className="text-muted-foreground mt-1">{profile?.headline ?? "Sin título profesional"}</p>
+                  {profile?.summary && (
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{profile.summary}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    📍 {profile?.location ?? "Sin ubicación"} ·{" "}
+                    {profile?.yearsExperience != null ? `${profile.yearsExperience} años de experiencia` : "Sin experiencia cargada"}
                   </p>
 
-                  <div style={{ marginTop: 10, maxWidth: 300 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>
+                  <div className="mt-4 max-w-xs">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
                       <span>Perfil completado</span>
                       <span>{profile?.completionScore ?? 0}%</span>
                     </div>
-                    <div style={{ height: 6, background: "#1f2937", borderRadius: 999 }}>
-                      <div
-                        style={{
-                          height: "100%",
-                          borderRadius: 999,
-                          background: "#2563eb",
-                          width: `${profile?.completionScore ?? 0}%`,
-                          transition: "width 0.4s ease",
-                        }}
-                      />
-                    </div>
+                    <Progress value={profile?.completionScore ?? 0} className="h-1.5" />
                   </div>
                 </div>
 
-                <span onClick={() => setShowProfileModal(true)} style={styles.editLink}>
-                  Editar perfil →
-                </span>
+                <div className="flex flex-col gap-2 items-end shrink-0">
+                  <Button variant="outline" size="sm" onClick={() => setShowProfileModal(true)}>
+                    ✏️ Editar perfil
+                  </Button>
+                  <Button
+                    variant={copied ? "success" : "ghost"}
+                    size="sm"
+                    onClick={copyShareLink}
+                  >
+                    {copied ? "✓ Link copiado" : "🔗 Compartir"}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={downloadPDF}>
+                    📄 Descargar CV
+                  </Button>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* GRID */}
-              <div style={{ ...styles.grid, gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr" }}>
-                {/* LEFT */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  {/* COURSES */}
-                  <div style={styles.card}>
-                    <div style={styles.cardHeader}>
-                      <h3>📖 Continúa con tu aprendizaje</h3>
-                      <span onClick={() => navigate("/learning")} style={styles.catalogLink}>
-                        Ver mis cursos →
-                      </span>
-                    </div>
-                    {courses.map((c, i) => (
-                      <div key={i} style={styles.course}>
-                        <div style={styles.courseTop}>
-                          <span>{c.name}</span>
-                          <span>{c.progress}%</span>
-                        </div>
-                        <div style={styles.progressBar}>
-                          <div style={{ ...styles.progressFill, width: `${c.progress}%` }} />
-                        </div>
-                      </div>
-                    ))}
+          {/* GRID */}
+          <div className={`grid gap-5 ${isMobile ? "grid-cols-1" : "grid-cols-[1fr_320px]"}`}>
+            {/* LEFT */}
+            <div className="flex flex-col gap-5">
+
+              {/* CURSOS EN PROGRESO */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>📖 Mis cursos en progreso</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => navigate("/learning")}>Ver todos →</Button>
                   </div>
+                </CardHeader>
+                <CardContent>
+                  {courses.length === 0 ? (
+                    <div className="py-4 text-center text-muted-foreground text-sm">
+                      Todavía no empezaste ningún curso.{" "}
+                      <button className="text-primary hover:underline" onClick={() => navigate("/learning")}>
+                        Explorar cursos →
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {courses.slice(0, 4).map(c => (
+                        <div
+                          key={c.id}
+                          className="cursor-pointer group"
+                          onClick={() => navigate(`/curso/${c.id}`)}
+                        >
+                          <div className="flex justify-between text-sm mb-2 group-hover:text-primary transition-colors">
+                            <span>{c.emoji} {c.title}</span>
+                            <span className="text-muted-foreground">{c.progress}%</span>
+                          </div>
+                          <Progress value={c.progress} className="h-1.5" indicatorClassName="bg-success" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                  {/* SKILLS */}
-                  <div style={styles.card}>
-                    <h3 style={{ marginBottom: 16 }}>🛡️ Habilidades Validadas</h3>
-                    <div style={{
-                      display: "grid",
-                      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                      gap: 12,
-                    }}>
+              {/* HABILIDADES */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle>🛡️ Habilidades detectadas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {skills.length === 0 ? (
+                    <div className="py-4 text-center text-muted-foreground text-sm">
+                      Completá el{" "}
+                      <button className="text-primary hover:underline" onClick={() => navigate("/diagnostic")}>
+                        diagnóstico inicial →
+                      </button>{" "}
+                      para ver tus habilidades.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {skills.map((s, i) => (
-                        <div key={i} style={styles.skillCard}>
-                          <div style={styles.skillBadge}>
-                            <span style={{ fontSize: 22 }}>{s.icon}</span>
+                        <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between text-xs mb-1.5">
+                              <span className="font-medium truncate">{s.name}</span>
+                              <span className={levelColor(s.score)}>{s.score}%</span>
+                            </div>
+                            <Progress value={s.score} className="h-1" />
                           </div>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ margin: 0, fontWeight: 600, color: "#f1f5f9", fontSize: 14 }}>{s.name}</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "#6b7280" }}>{s.category}</p>
-                          </div>
-                          <span style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: levelColor[s.level],
-                            background: levelColor[s.level] + "22",
-                            padding: "3px 10px",
-                            borderRadius: 999,
-                            border: `1px solid ${levelColor[s.level]}44`,
-                            whiteSpace: "nowrap",
-                          }}>
-                            {s.level}
-                          </span>
+                          <Badge variant={levelVariant(s.score)} className="shrink-0 text-[10px]">
+                            {levelLabel(s.score)}
+                          </Badge>
                         </div>
                       ))}
                     </div>
-                  </div>
-                </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                {/* RIGHT */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  {/* BADGES */}
-                  <div style={styles.card}>
-                    <h3>🏅 Insignias</h3>
-                    <div style={styles.badges}>
-                      {badges.map((b, i) => (
-                        <span key={i} style={styles.badge}>{b}</span>
+              {/* EXPERIENCIA LABORAL */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>💼 Experiencia laboral</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => { setEditingExp(emptyExp()); setShowExpModal(true); }}>
+                      + Agregar
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {workExps.length === 0 ? (
+                    <p className="text-muted-foreground text-sm text-center py-4">No hay experiencias cargadas todavía.</p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {workExps.map((exp, idx) => (
+                        <div key={exp.id}>
+                          {idx > 0 && <Separator className="my-3" />}
+                          <div className="flex justify-between items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm">{exp.title}</p>
+                              <p className="text-primary text-xs mt-0.5">{exp.company}</p>
+                              <p className="text-muted-foreground text-xs mt-0.5">
+                                {exp.startDate} — {exp.endDate ?? "Actualidad"}
+                              </p>
+                              {exp.description && (
+                                <p className="text-muted-foreground text-xs mt-2 leading-relaxed">{exp.description}</p>
+                              )}
+                            </div>
+                            <div className="flex gap-1.5 shrink-0">
+                              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setEditingExp({ ...exp }); setShowExpModal(true); }}>Editar</Button>
+                              <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => deleteExp(exp.id)}>Eliminar</Button>
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
-                  {/* LINKS */}
-                  <div style={styles.card}>
-                    <div style={styles.cardHeader}>
-                      <h3>Enlaces</h3>
-                      <span onClick={() => setShowLinksModal(true)} style={styles.catalogLink}>
-                        Editar →
-                      </span>
+            {/* RIGHT */}
+            <div className="flex flex-col gap-5">
+
+              {/* BADGES */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle>🏅 Quizzes aprobados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {badges.length === 0 ? (
+                    <p className="text-muted-foreground text-sm text-center py-4">Completá un quiz para ganar tu primera insignia.</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {badges.map(b => (
+                        <button
+                          key={b.id}
+                          onClick={() => navigate(`/curso/${b.course.id}`)}
+                          className="flex items-center gap-3 p-2.5 rounded-xl border border-success/30 bg-success/5 hover:bg-success/10 transition-colors text-left w-full"
+                        >
+                          <span className="text-lg">{b.course.emoji}</span>
+                          <div>
+                            <p className="text-xs font-semibold">{b.course.title}</p>
+                            <p className="text-xs text-success">✓ {b.score}% · {b.correctCount}/{b.totalQuestions}</p>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                    <p>
-                      🔗 LinkedIn:{" "}
-                      {profile?.linkedinUrl ? (
-                        <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" style={{ color: "#60a5fa" }}>
-                          {profile.linkedinUrl}
-                        </a>
-                      ) : (
-                        <span style={{ color: "#6b7280" }}>Sin LinkedIn</span>
-                      )}
-                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* ENLACES */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>🔗 Enlaces</CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => setShowLinksModal(true)}>Editar →</Button>
                   </div>
-                </div>
-              </div>
-            </>
-          )}
+                </CardHeader>
+                <CardContent>
+                  {profile?.linkedinUrl ? (
+                    <a href={profile.linkedinUrl} target="_blank" rel="noreferrer"
+                      className="text-primary text-sm hover:underline">
+                      LinkedIn →
+                    </a>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">Sin LinkedIn cargado.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* MODAL PERFIL */}
       {showProfileModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>Editar perfil</h2>
-            <input
-              style={styles.input}
-              value={editProfile.headline}
-              onChange={(e) => setEditProfile({ ...editProfile, headline: e.target.value })}
-              placeholder="Headline (ej: HR Leader con 20 años de experiencia)"
-            />
-            <input
-              style={styles.input}
-              value={editProfile.location}
-              onChange={(e) => setEditProfile({ ...editProfile, location: e.target.value })}
-              placeholder="Ubicación (ej: Buenos Aires, Argentina)"
-            />
-            <input
-              style={styles.input}
-              type="number"
-              value={editProfile.yearsExperience}
-              onChange={(e) => setEditProfile({ ...editProfile, yearsExperience: e.target.value })}
-              placeholder="Años de experiencia"
-            />
-            <textarea
-              style={{ ...styles.input, height: 100, resize: "vertical" }}
-              value={editProfile.summary}
-              onChange={(e) => setEditProfile({ ...editProfile, summary: e.target.value })}
-              placeholder="Resumen / Bio"
-            />
-            <div style={styles.modalButtons}>
-              <button style={styles.cancelBtn} onClick={() => setShowProfileModal(false)}>
-                Cancelar
-              </button>
-              <button style={styles.saveBtn} onClick={saveProfile}>
-                Guardar
-              </button>
+        <Modal title="Editar perfil" onClose={() => setShowProfileModal(false)}>
+          <div className="flex flex-col gap-3">
+            <Input value={editProfile.username} onChange={e => setEditProfile({ ...editProfile, username: e.target.value })} placeholder="Nombre público" />
+            <Input value={editProfile.headline} onChange={e => setEditProfile({ ...editProfile, headline: e.target.value })} placeholder="Título profesional" />
+            <Input value={editProfile.location} onChange={e => setEditProfile({ ...editProfile, location: e.target.value })} placeholder="Ubicación" />
+            <Input type="number" value={editProfile.yearsExperience} onChange={e => setEditProfile({ ...editProfile, yearsExperience: e.target.value })} placeholder="Años de experiencia" />
+            <Textarea className="h-28" value={editProfile.summary} onChange={e => setEditProfile({ ...editProfile, summary: e.target.value })} placeholder="Resumen / Bio" />
+            <div className="flex justify-end gap-3 mt-2">
+              <Button variant="outline" onClick={() => setShowProfileModal(false)}>Cancelar</Button>
+              <Button onClick={saveProfile}>Guardar</Button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* MODAL LINKS */}
       {showLinksModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>Editar enlaces</h2>
-            <input
-              style={styles.input}
-              value={editLinks.linkedinUrl}
-              onChange={(e) => setEditLinks({ linkedinUrl: e.target.value })}
-              placeholder="LinkedIn URL (ej: https://linkedin.com/in/usuario)"
-            />
-            <div style={styles.modalButtons}>
-              <button style={styles.cancelBtn} onClick={() => setShowLinksModal(false)}>
-                Cancelar
-              </button>
-              <button style={styles.saveBtn} onClick={saveLinks}>
-                Guardar
-              </button>
+        <Modal title="Editar enlaces" onClose={() => setShowLinksModal(false)}>
+          <div className="flex flex-col gap-3">
+            <Input value={editLinks.linkedinUrl} onChange={e => setEditLinks({ linkedinUrl: e.target.value })} placeholder="https://linkedin.com/in/usuario" />
+            <div className="flex justify-end gap-3 mt-2">
+              <Button variant="outline" onClick={() => setShowLinksModal(false)}>Cancelar</Button>
+              <Button onClick={saveLinks}>Guardar</Button>
             </div>
           </div>
-        </div>
+        </Modal>
+      )}
+
+      {/* MODAL EXPERIENCIA */}
+      {showExpModal && (
+        <Modal title={editingExp.id ? "Editar experiencia" : "Agregar experiencia"} onClose={() => setShowExpModal(false)}>
+          <div className="flex flex-col gap-3">
+            <Input value={editingExp.title} onChange={e => setEditingExp({ ...editingExp, title: e.target.value })} placeholder="Cargo (ej: Gerente de RRHH)" />
+            <Input value={editingExp.company} onChange={e => setEditingExp({ ...editingExp, company: e.target.value })} placeholder="Empresa" />
+            <div className="grid grid-cols-2 gap-3">
+              <Input value={editingExp.startDate} onChange={e => setEditingExp({ ...editingExp, startDate: e.target.value })} placeholder="Inicio (ej: 2018)" />
+              <Input value={editingExp.endDate ?? ""} onChange={e => setEditingExp({ ...editingExp, endDate: e.target.value || null })} placeholder="Fin (vacío = Actualidad)" />
+            </div>
+            <Textarea className="h-24" value={editingExp.description} onChange={e => setEditingExp({ ...editingExp, description: e.target.value })} placeholder="Descripción breve del rol y logros" />
+            <div className="flex justify-end gap-3 mt-2">
+              <Button variant="outline" onClick={() => setShowExpModal(false)}>Cancelar</Button>
+              <Button onClick={saveExp}>Guardar</Button>
+            </div>
+          </div>
+        </Modal>
       )}
     </>
   );
 }
-
-const styles: Record<string, CSSProperties> = {
-  page: { display: "flex", minHeight: "100vh", background: "#0b0f19", color: "#e5e7eb", fontFamily: "system-ui" },
-  main: { flex: 1, padding: "30px", minWidth: 0 },
-  profileHeader: { display: "flex", alignItems: "center", gap: "20px", marginBottom: "25px", flexWrap: "wrap" },
-  avatar: { width: "70px", height: "70px", borderRadius: "50%", background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "20px" },
-  name: { margin: 0, color: "#fff" },
-  role: { color: "#9ca3af", marginTop: "5px" },
-  meta: { fontSize: "13px", color: "#6b7280", marginTop: "5px" },
-  editLink: { color: "#60a5fa", cursor: "pointer", fontSize: "14px" },
-  grid: { display: "grid", gap: "20px" },
-  card: { padding: "20px", border: "1px solid #1f2937", borderRadius: "16px", background: "rgba(255,255,255,0.03)" },
-  cardHeader: { display: "flex", justifyContent: "space-between", marginBottom: "15px" },
-  catalogLink: { color: "#60a5fa", cursor: "pointer" },
-  course: { marginBottom: "16px" },
-  courseTop: { display: "flex", justifyContent: "space-between" },
-  progressBar: { height: "8px", background: "#1f2937", borderRadius: "999px" },
-  progressFill: { height: "100%", background: "#22c55e" },
-  skillCard: {display: "flex",alignItems: "center",gap: 12,padding: "12px 14px",background: "#0f172a",borderRadius: 12,border: "1px solid #1f2937",},
-  skillBadge: {width: 44,height: 44,borderRadius: 10,background: "#1e293b",display: "flex",alignItems: "center",justifyContent: "center",border: "1px solid #374151",flexShrink: 0,},
-  badges: { display: "flex", gap: "8px", flexWrap: "wrap" },
-  badge: { padding: "6px 10px", background: "#1e293b", borderRadius: "999px", fontSize: "12px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 },
-  modal: { width: "100%", maxWidth: "500px", background: "#111827", padding: "28px", borderRadius: "20px" },
-  modalTitle: { marginBottom: "20px", color: "#fff" },
-  input: { width: "100%", padding: "12px", marginBottom: "14px", borderRadius: "10px", border: "1px solid #374151", background: "#0f172a", color: "#fff", boxSizing: "border-box" },
-  modalButtons: { display: "flex", justifyContent: "flex-end", gap: "12px" },
-  cancelBtn: { padding: "10px 16px", border: "1px solid #374151", background: "transparent", color: "#d1d5db", borderRadius: 8, cursor: "pointer" },
-  saveBtn: { padding: "10px 16px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" },
-};

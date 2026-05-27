@@ -1,22 +1,42 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import { api } from "../../lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-interface Skill {
-  name: string;
-  level: number;
-}
-
+interface Skill     { name: string; score: number }
 interface Candidate {
-  name: string;
-  role: string;
-  location: string;
-  skills: Skill[];
+  id: string; userId: string; fullName: string;
+  headline: string | null; location: string | null; summary: string | null;
+  yearsExperience: number | null; linkedinUrl: string | null;
+  completionScore: number; skills: Skill[];
+}
+interface Evaluation {
+  id: string; rating: number; feedback: string; createdAt: string;
+  evaluator: { fullName: string };
 }
 
 export default function Candidates() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile]       = useState(false);
   const [selectedUser, setSelectedUser] = useState<Candidate | null>(null);
+  const [candidates, setCandidates]   = useState<Candidate[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [search, setSearch]           = useState("");
+  const [filterSkill, setFilterSkill] = useState("");
+  const [minYears, setMinYears]       = useState<number | "">("");
+
+  const [feedback, setFeedback]       = useState("");
+  const [rating, setRating]           = useState(3);
+  const [sending, setSending]         = useState(false);
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const [loadingEvals, setLoadingEvals] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 900);
@@ -25,175 +45,279 @@ export default function Candidates() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const candidates: Candidate[] = [
-    {
-      name: "Ana Corbelle",
-      role: "HR Leader | Especialista en Talento Senior",
-      location: "Buenos Aires, Argentina",
-      skills: [
-        { name: "Liderazgo", level: 90 },
-        { name: "Gestión del cambio", level: 85 },
-        { name: "Comunicación", level: 88 },
-      ],
-    },
-    {
-      name: "Vanina Colazo",
-      role: "Especialista en Desarrollo Organizacional",
-      location: "Buenos Aires, Argentina",
-      skills: [
-        { name: "Estrategia", level: 92 },
-        { name: "Liderazgo", level: 88 },
-        { name: "Marca personal", level: 80 },
-      ],
-    },
-    {
-      name: "Carlos Méndez",
-      role: "Gerente de Operaciones | Transformación Digital",
-      location: "Córdoba, Argentina",
-      skills: [
-        { name: "Transformación digital", level: 85 },
-        { name: "Gestión de proyectos", level: 90 },
-        { name: "Pensamiento estratégico", level: 82 },
-      ],
-    },
-  ];
+  useEffect(() => {
+    api.get<Candidate[]>("/candidates")
+      .then(setCandidates)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedUser) { setEvaluations([]); return; }
+    setLoadingEvals(true);
+    api.get<Evaluation[]>(`/candidates/evaluations/${selectedUser.userId}`)
+      .then(setEvaluations).catch(() => setEvaluations([]))
+      .finally(() => setLoadingEvals(false));
+  }, [selectedUser?.userId]);
+
+  const allSkills = Array.from(new Set(candidates.flatMap(c => c.skills.map(s => s.name)))).sort();
+
+  const filtered = candidates.filter(c => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (![c.fullName, c.headline ?? "", c.location ?? ""].some(t => t.toLowerCase().includes(q)) &&
+          !c.skills.some(s => s.name.toLowerCase().includes(q))) return false;
+    }
+    if (filterSkill && !c.skills.some(s => s.name === filterSkill)) return false;
+    if (minYears !== "" && (c.yearsExperience ?? 0) < minYears) return false;
+    return true;
+  });
+
+  const handleSendFeedback = async () => {
+    if (!selectedUser || !feedback.trim() || sending) return;
+    setSending(true);
+    try {
+      const newEval = await api.post<Evaluation>("/candidates/evaluations", {
+        candidateUserId: selectedUser.userId, rating, feedback: feedback.trim(),
+      });
+      setEvaluations(prev => [newEval, ...prev]);
+      setFeedback(""); setRating(3);
+    } catch (err: any) {
+      alert(err.message || "Error al guardar la evaluación");
+    } finally { setSending(false); }
+  };
+
+  const selectCandidate = (c: Candidate) => { setSelectedUser(c); setFeedback(""); setRating(3); };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#0b0f19", color: "#fff", fontFamily: "system-ui", flexDirection: isMobile ? "column" : "row" }}>
-      <Sidebar userType="empresa" />
+    <div className={`flex min-h-screen bg-background text-foreground ${isMobile ? "flex-col" : "flex-row"}`}>
+      <Sidebar />
 
-      <div style={{ flex: 1, padding: "24px", minWidth: 0 }}>
+      <div className="flex-1 p-6 min-w-0">
         <TopBar showLogo placeholder="Buscar candidatos..." />
 
-        <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ margin: 0, fontSize: "28px" }}>Candidatos</h1>
-          <p style={{ marginTop: "6px", color: "#9ca3af" }}>
-            Explorá los perfiles disponibles
-          </p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Candidatos</h1>
+          <p className="text-muted-foreground mt-1">Explorá perfiles de profesionales +45 disponibles</p>
         </div>
 
-        <div style={{
-          display: "grid",
-          gap: "20px",
-          gridTemplateColumns: isMobile ? "1fr" : selectedUser ? "1fr 380px" : "1fr",
-          alignItems: "start",
-        }}>
+        {/* SEARCH + FILTERS */}
+        <div className="flex flex-col gap-3 mb-6">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">🔍</span>
+            <Input
+              className="pl-9"
+              placeholder="Buscar por nombre, rol, ubicación o habilidad..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-2 flex-wrap items-center">
+            <select
+              value={filterSkill}
+              onChange={e => setFilterSkill(e.target.value)}
+              className={`px-3 py-2 rounded-lg text-sm border bg-muted text-foreground outline-none cursor-pointer transition-colors ${filterSkill ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+            >
+              <option value="">🎯 Filtrar por habilidad</option>
+              {allSkills.map(skill => <option key={skill} value={skill}>{skill}</option>)}
+            </select>
+
+            <select
+              value={minYears}
+              onChange={e => setMinYears(e.target.value === "" ? "" : Number(e.target.value))}
+              className={`px-3 py-2 rounded-lg text-sm border bg-muted text-foreground outline-none cursor-pointer transition-colors ${minYears !== "" ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+            >
+              <option value="">💼 Años de experiencia</option>
+              {[1, 3, 5, 10, 15].map(y => <option key={y} value={y}>{y}+ años</option>)}
+            </select>
+
+            {(filterSkill || minYears !== "") && (
+              <Button variant="destructive" size="sm" onClick={() => { setFilterSkill(""); setMinYears(""); }}>
+                Limpiar filtros
+              </Button>
+            )}
+
+            {filtered.length !== candidates.length && (
+              <span className="text-xs text-muted-foreground ml-auto">
+                {filtered.length} de {candidates.length} candidatos
+              </span>
+            )}
+          </div>
+        </div>
+
+        {loading && (
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-56 rounded-2xl" />)}
+          </div>
+        )}
+
+        {!loading && filtered.length === 0 && (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              {search ? "No se encontraron candidatos con ese criterio." : "Aún no hay perfiles disponibles."}
+            </CardContent>
+          </Card>
+        )}
+
+        <div className={`grid gap-5 items-start ${
+          isMobile ? "grid-cols-1" : selectedUser ? "grid-cols-[1fr_380px]" : "grid-cols-1"
+        }`}>
           {/* GRID */}
-          <div style={{
-            display: "grid",
-            gap: "20px",
-            gridTemplateColumns: isMobile ? "1fr" : selectedUser ? "repeat(2, minmax(280px, 1fr))" : "repeat(3, minmax(280px, 340px))",
-          }}>
-            {candidates.map((c, i) => (
-              <div key={i} onClick={() => setSelectedUser(c)} style={{
-                padding: "20px", borderRadius: "18px",
-                border: `1px solid ${selectedUser?.name === c.name ? "#2563eb" : "#1f2937"}`,
-                background: selectedUser?.name === c.name ? "rgba(37,99,235,0.08)" : "rgba(255,255,255,0.03)",
-                cursor: "pointer", transition: "0.2s",
-              }}>
-                <div style={{ display: "flex", gap: "14px", marginBottom: "18px" }}>
-                  <div style={{
-                    width: 54, height: 54, borderRadius: "50%",
-                    background: "#2563eb", display: "flex",
-                    alignItems: "center", justifyContent: "center",
-                    fontWeight: 700, flexShrink: 0,
-                  }}>
-                    {c.name.split(" ").map((n) => n[0]).join("")}
+          <div className={`grid gap-4 ${
+            isMobile ? "grid-cols-1" :
+            selectedUser ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          }`}>
+            {filtered.map(c => (
+              <Card
+                key={c.id}
+                onClick={() => selectCandidate(c)}
+                className={`cursor-pointer transition-colors hover:border-primary/50 ${
+                  selectedUser?.id === c.id ? "border-primary bg-primary/5" : ""
+                }`}
+              >
+                <CardContent className="pt-5">
+                  <div className="flex gap-3 mb-4">
+                    <Avatar className="w-12 h-12 shrink-0">
+                      <AvatarFallback className="text-base">
+                        {c.fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-base truncate">{c.fullName}</h3>
+                      <p className="text-muted-foreground text-sm truncate">{c.headline ?? "Profesional"}</p>
+                      {c.location && <p className="text-xs text-muted-foreground mt-0.5">📍 {c.location}</p>}
+                    </div>
                   </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: 17 }}>{c.name}</h3>
-                    <p style={{ margin: "4px 0", color: "#cbd5e1" }}>{c.role}</p>
-                    <span style={{ fontSize: 13, color: "#94a3b8" }}>📍 {c.location}</span>
+
+                  {c.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {c.skills.slice(0, 3).map((s, idx) => (
+                        <Badge key={idx} variant="default" className="text-xs">{s.name}</Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {c.yearsExperience != null && (
+                    <p className="text-xs text-muted-foreground mb-3">💼 {c.yearsExperience} años de experiencia</p>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <Progress value={c.completionScore} className="flex-1 h-1.5" />
+                    <span className="text-xs text-muted-foreground shrink-0">{c.completionScore}%</span>
                   </div>
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-                  {c.skills.map((s, idx) => (
-                    <span key={idx} style={{
-                      padding: "6px 10px", borderRadius: 999,
-                      background: "#172033", color: "#93c5fd", fontSize: 12,
-                    }}>
-                      {s.name}
-                    </span>
-                  ))}
-                </div>
-                <button style={{
-                  width: "100%", padding: 10, borderRadius: 10,
-                  border: "none", background: "#2563eb",
-                  color: "#fff", cursor: "pointer", fontWeight: 600,
-                }}>
-                  Ver perfil
-                </button>
-              </div>
+
+                  <Button size="sm" className="w-full">Ver perfil</Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
           {/* DRAWER */}
           {selectedUser && (
-            <div style={{
-              background: "#111827", border: "1px solid #1f2937",
-              borderRadius: 24, padding: 24,
-              position: isMobile ? "relative" : "sticky",
-              top: 20, height: "fit-content",
-              width: isMobile ? "100%" : 380,
-            }}>
-              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
-                <button onClick={() => setSelectedUser(null)} style={{
-                  background: "transparent", border: "1px solid #374151",
-                  color: "#fff", width: 34, height: 34,
-                  borderRadius: 10, cursor: "pointer",
-                }}>✕</button>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", marginBottom: 24 }}>
-                <div style={{
-                  width: 90, height: 90, borderRadius: "50%",
-                  background: "#2563eb", display: "flex",
-                  alignItems: "center", justifyContent: "center",
-                  fontSize: 26, fontWeight: 700, marginBottom: 14,
-                }}>
-                  {selectedUser.name.split(" ").map((n: string) => n[0]).join("")}
+            <Card className="sticky top-5 h-fit">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-base">Perfil del candidato</CardTitle>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedUser(null)}>✕</Button>
                 </div>
-                <h2 style={{ margin: 0 }}>{selectedUser.name}</h2>
-                <p style={{ color: "#9ca3af", marginTop: 6 }}>{selectedUser.role}</p>
-              </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center text-center mb-5">
+                  <Avatar className="w-20 h-20 mb-3">
+                    <AvatarFallback className="text-2xl">
+                      {selectedUser.fullName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h2 className="font-bold text-lg">{selectedUser.fullName}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{selectedUser.headline ?? "Profesional"}</p>
+                  {selectedUser.location && <p className="text-xs text-muted-foreground mt-1">📍 {selectedUser.location}</p>}
+                </div>
 
-              <div style={{ display: "flex", gap: 12, marginBottom: 28 }}>
-                <button style={{ flex: 1, padding: 12, background: "#2563eb", border: "none", borderRadius: 12, color: "#fff", cursor: "pointer", fontWeight: 600 }}>Entrevistar</button>
-                <button style={{ flex: 1, padding: 12, background: "transparent", border: "1px solid #374151", borderRadius: 12, color: "#fff", cursor: "pointer" }}>Mensaje</button>
-              </div>
+                {selectedUser.summary && (
+                  <p className="text-sm text-muted-foreground leading-relaxed p-3 rounded-xl bg-secondary/30 border border-border mb-5">
+                    {selectedUser.summary}
+                  </p>
+                )}
 
-              <div style={{ marginBottom: 28 }}>
-                <h3 style={{ marginBottom: 16 }}>Habilidades</h3>
-                {selectedUser.skills.map((s: Skill, i: number) => (
-                  <div key={i} style={{ marginBottom: 16 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 14 }}>
-                      <span>{s.name}</span><span>{s.level}%</span>
-                    </div>
-                    <div style={{ height: 8, background: "#1f2937", borderRadius: 999, overflow: "hidden" }}>
-                      <div style={{ height: "100%", background: "#3b82f6", width: `${s.level}%` }} />
+                <div className="flex gap-2 mb-5">
+                  <Button className="flex-1" size="sm">Entrevistar</Button>
+                  {selectedUser.linkedinUrl && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={selectedUser.linkedinUrl} target="_blank" rel="noreferrer">LinkedIn →</a>
+                    </Button>
+                  )}
+                </div>
+
+                {selectedUser.skills.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-sm font-semibold mb-3">Habilidades del diagnóstico</h3>
+                    {selectedUser.skills.map((s, i) => (
+                      <div key={i} className="mb-3">
+                        <div className="flex justify-between text-xs mb-1.5">
+                          <span>{s.name}</span>
+                          <span className="text-muted-foreground">{s.score}%</span>
+                        </div>
+                        <Progress value={s.score} className="h-1.5" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* NUEVA EVALUACIÓN */}
+                <div className="mb-5">
+                  <h3 className="text-sm font-semibold mb-3">Nueva evaluación</h3>
+                  <div className="flex gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className={`text-2xl transition-colors ${star <= rating ? "text-warning" : "text-muted"}`}
+                      >★</button>
+                    ))}
+                    <span className="text-xs text-muted-foreground self-center ml-2">{rating}/5</span>
+                  </div>
+                  <Textarea
+                    value={feedback}
+                    onChange={e => setFeedback(e.target.value)}
+                    placeholder="Escribí una evaluación del candidato..."
+                    className="mb-3 h-24"
+                  />
+                  <Button
+                    className="w-full"
+                    variant={feedback.trim() ? "success" : "secondary"}
+                    disabled={!feedback.trim() || sending}
+                    onClick={handleSendFeedback}
+                  >
+                    {sending ? "Enviando..." : "Enviar evaluación"}
+                  </Button>
+                </div>
+
+                {/* HISTORIAL */}
+                {loadingEvals && <Skeleton className="h-20 rounded-xl" />}
+                {evaluations.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold mb-3">Historial ({evaluations.length})</h3>
+                    <div className="flex flex-col gap-3">
+                      {evaluations.map(ev => (
+                        <div key={ev.id} className="p-3 rounded-xl border border-border bg-background/50">
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <span key={s} className={`text-sm ${s <= ev.rating ? "text-warning" : "text-muted"}`}>★</span>
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground">{new Date(ev.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{ev.feedback}</p>
+                          <p className="text-xs text-muted mt-1">Por: {ev.evaluator?.fullName ?? "Evaluador"}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div>
-                <h3 style={{ marginBottom: 16 }}>Feedback</h3>
-                <div style={{ fontSize: 22, marginBottom: 12 }}>⭐⭐⭐⭐⭐</div>
-                <textarea placeholder="Escribí una evaluación..." style={{
-                  width: "100%", height: 110, background: "#0f172a",
-                  border: "1px solid #1f2937", borderRadius: 14,
-                  padding: 12, color: "#fff", resize: "none", outline: "none",
-                  boxSizing: "border-box",
-                }} />
-                <button style={{
-                  marginTop: 14, width: "100%", padding: 12,
-                  borderRadius: 12, border: "none", background: "#22c55e",
-                  color: "#000", cursor: "pointer", fontWeight: 700,
-                }}>
-                  Enviar evaluación
-                </button>
-              </div>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
