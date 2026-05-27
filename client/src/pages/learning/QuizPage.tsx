@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import TopBar from "../../components/TopBar";
+import { api } from "../../lib/api";
 
 type QuestionType = "multiple" | "truefalse";
 
@@ -31,95 +32,50 @@ interface QuizData {
   questions: Question[];
 }
 
-// TODO: GET /quizzes/:quizId
-const quizMock: QuizData = {
-  id: "quiz-mod2-mid",
-  title: "Quiz: Presencia Digital",
-  subtitle: "Módulo 2 · Verificación intermedia",
-  courseTitle: "Marca Personal para Profesionales +45",
-  moduleTitle: "Módulo 2: Presencia Digital",
-  isFinal: false,
-  xpReward: 80,
-  passingScore: 70,
-  questions: [
-    {
-      id: 1,
-      type: "multiple",
-      question: "¿Cuál es el elemento MÁS importante para que un recruiter te encuentre en LinkedIn?",
-      options: [
-        { id: "a", text: "Tener más de 500 conexiones" },
-        { id: "b", text: "Usar palabras clave de tu industria en el titular y resumen" },
-        { id: "c", text: "Publicar contenido todos los días" },
-        { id: "d", text: "Tener foto de perfil profesional" },
-      ],
-      correctId: "b",
-      explanation: "LinkedIn funciona como un buscador. Las keywords en el titular y la sección Acerca de son los campos con mayor peso en el algoritmo de búsqueda de recruiters.",
-    },
-    {
-      id: 2,
-      type: "truefalse",
-      question: "El titular de LinkedIn debe mostrar solo tu último cargo y empresa.",
-      options: [
-        { id: "true", text: "Verdadero" },
-        { id: "false", text: "Falso" },
-      ],
-      correctId: "false",
-      explanation: "El titular es tu propuesta de valor. Debe comunicar quién sos, a quién ayudás y qué problema resolvés, no solo un cargo que ya quedó en el pasado.",
-    },
-    {
-      id: 3,
-      type: "multiple",
-      question: "¿Cuál de estas opciones describe mejor la sección 'Acerca de' de LinkedIn?",
-      options: [
-        { id: "a", text: "Un resumen del CV en tercera persona" },
-        { id: "b", text: "Una lista de logros cuantificables" },
-        { id: "c", text: "Una historia en primera persona con fortalezas, logros y objetivos" },
-        { id: "d", text: "Un listado de habilidades técnicas" },
-      ],
-      correctId: "c",
-      explanation: "La sección Acerca de es tu espacio narrativo. En primera persona, cercana y auténtica, conecta mejor con los recruiters y humaniza tu perfil.",
-    },
-    {
-      id: 4,
-      type: "truefalse",
-      question: "El banner de LinkedIn es un espacio de marca personal que podés usar para comunicar tu área de expertise.",
-      options: [
-        { id: "true", text: "Verdadero" },
-        { id: "false", text: "Falso" },
-      ],
-      correctId: "true",
-      explanation: "Exacto. El banner es el primer elemento visual que ven los visitantes de tu perfil. Usarlo con intención — sector, propuesta de valor, frase clave — refuerza tu identidad profesional.",
-    },
-    {
-      id: 5,
-      type: "multiple",
-      question: "¿Qué significa tener un perfil de LinkedIn con 'All-Star Status'?",
-      options: [
-        { id: "a", text: "Tenés más de 1000 seguidores" },
-        { id: "b", text: "Completaste todas las secciones clave del perfil" },
-        { id: "c", text: "Publicaste más de 50 artículos" },
-        { id: "d", text: "LinkedIn te verificó como experto en tu industria" },
-      ],
-      correctId: "b",
-      explanation: "All-Star es el nivel máximo de completitud del perfil. Incluir foto, titular, resumen, experiencias con descripción, educación y habilidades te da mayor visibilidad en búsquedas.",
-    },
-  ],
-};
 
-//Component
 export default function QuizPage() {
   const navigate = useNavigate();
-  // const { quizId } = useParams();  use to fetch from API
+  const { courseId } = useParams<{ courseId: string }>();
 
-  const quiz = quizMock;
-  const total = quiz.questions.length;
+  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [loadingQuiz, setLoadingQuiz] = useState(true);
+  const [quizError, setQuizError] = useState<string | null>(null);
 
+  // Todos los hooks deben estar ANTES de cualquier return condicional
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [answers, setAnswers] = useState<Record<number, { selectedId: string; correct: boolean }>>({});
   const [phase, setPhase] = useState<"quiz" | "result">("quiz");
   const [showXp, setShowXp] = useState(false);
+
+  useEffect(() => {
+    if (!courseId) return;
+    api.get<QuizData>(`/learning/courses/${courseId}/quiz`)
+      .then(setQuiz)
+      .catch(() => setQuizError("Quiz no disponible para este curso."))
+      .finally(() => setLoadingQuiz(false));
+  }, [courseId]);
+
+  if (loadingQuiz) {
+    return (
+      <div style={{ display: "flex", minHeight: "100vh", background: "#0b0f19", alignItems: "center", justifyContent: "center", color: "#9ca3af" }}>
+        Cargando quiz...
+      </div>
+    );
+  }
+
+  if (quizError || !quiz) {
+    return (
+      <div style={{ display: "flex", minHeight: "100vh", background: "#0b0f19", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 16, color: "#9ca3af" }}>
+        <div style={{ fontSize: 48 }}>📭</div>
+        <p>{quizError ?? "Quiz no disponible"}</p>
+        <button onClick={() => navigate(-1)} style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "#2563eb", color: "#fff", cursor: "pointer" }}>Volver al curso</button>
+      </div>
+    );
+  }
+
+  const total = quiz.questions.length;
 
   const question = quiz.questions[currentIndex];
   const isCorrect = selected === question.correctId;
@@ -148,6 +104,15 @@ export default function QuizPage() {
       setConfirmed(false);
     } else {
       setPhase("result");
+      // Guardar resultado en el backend
+      if (courseId) {
+        api.post(`/learning/courses/${courseId}/quiz/result`, {
+          score: scorePercent,
+          passed,
+          correctCount,
+          totalQuestions: total,
+        }).catch(() => {});
+      }
       if (passed) {
         setTimeout(() => setShowXp(true), 600);
         setTimeout(() => setShowXp(false), 4000);
