@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useApp } from "../../../context/AppContext";
 import googleIcon from "../../../assets/icons8-logo-de-google-48.png";
 
 type UserType = "profesional" | "empresa";
@@ -20,7 +21,10 @@ interface EmpresaForm {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register: registerUser } = useApp();
   const [userType, setUserType] = useState<UserType>("profesional");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const [profForm, setProfForm] = useState<ProfesionalForm>({
     name: "", email: "", password: "", confirmPassword: "",
@@ -35,6 +39,7 @@ export default function Register() {
   const handleTabChange = (type: UserType) => {
     setUserType(type);
     setErrors({});
+    setServerError(null);
   };
 
   const validateProf = () => {
@@ -55,19 +60,26 @@ export default function Register() {
     return e;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs = userType === "profesional" ? validateProf() : validateEmp();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setErrors({});
+    setServerError(null);
+    setIsSubmitting(true);
 
-    if (userType === "profesional") {
-      // TODO: POST /auth/register { userType: "profesional", ...profForm }
-      // Por ahora navegamos directo al diagnóstico pasando el nombre
-      navigate("/diagnostic", { state: { name: profForm.name, email: profForm.email } });
-    } else {
-      // TODO: POST /auth/register { userType: "empresa", ...empForm }
-      navigate("/dashboard");
+    try {
+      if (userType === "profesional") {
+        await registerUser(profForm.name, profForm.email, profForm.password, "profesional");
+        navigate("/diagnostic");
+      } else {
+        await registerUser(empForm.companyName, empForm.email, empForm.password, "empresa");
+        navigate("/companyprofile");
+      }
+    } catch (err: any) {
+      setServerError(err.message || "Error al registrarse");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -213,22 +225,20 @@ export default function Register() {
           </>
         )}
 
-        {userType === "profesional" && (
-          <>
-            <div style={styles.divider}>
-              <span style={styles.line} />
-              <span style={styles.dividerText}>o continuá con</span>
-              <span style={styles.line} />
-            </div>
-            <button type="button" style={styles.googleButton}>
-              <img src={googleIcon} alt="Google" style={styles.googleIconImg} />
-              Continuar con Google
-            </button>
-          </>
-        )}
+        {serverError && <p style={styles.error}>{serverError}</p>}
 
-        <button type="submit" style={styles.button}>
-          {userType === "empresa" ? "Crear cuenta empresa" : "Registrarse"}
+        <div style={styles.divider}>
+          <span style={styles.line} />
+          <span style={styles.dividerText}>o continuá con</span>
+          <span style={styles.line} />
+        </div>
+        <a href="http://localhost:3008/auth/google" style={{ ...styles.googleButton, textDecoration: "none", color: "#374151" }}>
+          <img src={googleIcon} alt="Google" style={styles.googleIconImg} />
+          Continuar con Google
+        </a>
+
+        <button type="submit" style={styles.button} disabled={isSubmitting}>
+          {isSubmitting ? "Registrando..." : (userType === "empresa" ? "Crear cuenta empresa" : "Registrarse")}
         </button>
 
         <p style={styles.footer}>
