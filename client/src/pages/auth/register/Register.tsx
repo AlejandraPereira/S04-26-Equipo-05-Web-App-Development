@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../../../context/AppContext";
 import googleIcon from "../../../assets/icons8-logo-de-google-48.png";
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3008";
+
 type UserType = "profesional" | "empresa";
 
 interface ProfesionalForm {
@@ -232,7 +234,7 @@ export default function Register() {
           <span style={styles.dividerText}>o continuá con</span>
           <span style={styles.line} />
         </div>
-        <a href="http://localhost:3008/auth/google" style={{ ...styles.googleButton, textDecoration: "none", color: "#374151" }}>
+        <a href={`${API_BASE}/auth/google`} style={{ ...styles.googleButton, textDecoration: "none", color: "#374151" }}>
           <img src={googleIcon} alt="Google" style={styles.googleIconImg} />
           Continuar con Google
         </a>
