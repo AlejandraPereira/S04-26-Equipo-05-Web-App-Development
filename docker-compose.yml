@@ -30,7 +30,7 @@ services:
       JWT_EXPIRES_IN:      ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL:        ${FRONTEND_URL:-http://localhost}
       GOOGLE_CLIENT_ID:    ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET:${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost/api/auth/google/callback}
       MAIL_USER:           ${MAIL_USER:-}
       MAIL_PASSWORD:       ${MAIL_PASSWORD:-}
