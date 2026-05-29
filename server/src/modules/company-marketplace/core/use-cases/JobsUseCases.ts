@@ -3,7 +3,7 @@ import { JobOpportunityRepository } from '../data/JobOpportunityRepository';
 import { CreateJobOpportunityDTO } from '../entities/job-opportunity/dto/CreateJobOpportunity.dto';
 import { JobOpportunityDTO } from '../entities/job-opportunity/dto/JobOpportunity.dto';
 import { JobOpportunity } from '../entities/job-opportunity/JobOpportunity.entity';
-import { GetJobsDTO } from '../entities/job-opportunity/dto/GetJobs.dto';
+import { GetJobsDTO } from '../entities/job-opportunity/dto/getJobs.dto';
 import { Paginated } from '../shared/helpers/paginated.helper';
 
 export interface JobUseCasesProvider {

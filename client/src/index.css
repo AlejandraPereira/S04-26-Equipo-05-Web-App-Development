@@ -1,33 +1,70 @@
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  width: 100%;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables — dark theme matching the existing palette ── */
+@layer base {
+  :root {
+    --background:   217 33% 7%;       /* #0b0f19 */
+    --foreground:   220 13% 91%;      /* #e5e7eb */
+
+    --card:         220 26% 10%;      /* #111827 */
+    --card-foreground: 220 13% 91%;
+
+    --primary:      217 91% 60%;      /* #3b82f6 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary:    215 28% 17%;      /* #1e293b */
+    --secondary-foreground: 220 13% 91%;
+
+    --muted:        215 25% 15%;      /* #1f2937 */
+    --muted-foreground: 217 10% 60%; /* #9ca3af */
+
+    --accent:       217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive:  0 63% 61%;        /* #f87171 */
+    --destructive-foreground: 0 0% 100%;
+
+    --success:      142 71% 45%;      /* #22c55e */
+    --success-foreground: 0 0% 100%;
+
+    --warning:      38 92% 50%;       /* #f59e0b */
+    --warning-foreground: 0 0% 100%;
+
+    --border:       215 25% 15%;      /* #1f2937 */
+    --input:        215 25% 15%;
+    --ring:         217 91% 60%;
+
+    --radius: 0.75rem;
+  }
 }
 
-body {
-  background: #0f172a;
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  * {
+    @apply border-border box-border;
+  }
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-/* ================= GLOBAL APP ================= */
-
+/* ── Existing global classes (kept for backward compat) ── */
 .appPage {
   display: flex;
   min-height: 100vh;
   background: #0b0f19;
   color: white;
 }
-
-/* ================= SIDEBAR ================= */
 
 .sidebar {
   width: 220px;
@@ -39,10 +76,7 @@ body {
   justify-content: space-between;
 }
 
-.logo {
-  margin-bottom: 20px;
-  color: #fff;
-}
+.logo { margin-bottom: 20px; color: #fff; }
 
 .sideBtn {
   width: 100%;
@@ -56,36 +90,17 @@ body {
   transition: 0.2s;
   font-size: 14px;
 }
-
-.sideBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
+.sideBtn:hover { background: rgba(255,255,255,0.05); }
 .activeBtn {
-  background: rgba(37, 99, 235, 0.15);
+  background: rgba(37,99,235,0.15);
   color: #60a5fa;
   border-left: 3px solid #2563eb;
 }
 
-.sidebarFooter {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.sidebarFooter { display: flex; flex-direction: column; gap: 10px; }
+.logoutBtn { color: #ef4444; }
 
-.logoutBtn {
-  color: #ef4444;
-}
-
-/* ================= MAIN ================= */
-
-.mainContent {
-  flex: 1;
-  padding: 24px;
-  min-width: 0;
-}
-
-/* ================= TOPBAR ================= */
+.mainContent { flex: 1; padding: 24px; min-width: 0; }
 
 .topBar {
   display: flex;
@@ -108,11 +123,7 @@ body {
   outline: none;
 }
 
-.topIcons {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
+.topIcons { display: flex; align-items: center; gap: 14px; }
 
 .profileAvatar {
   width: 38px;
@@ -127,17 +138,7 @@ body {
 }
 
 @media (max-width: 900px) {
-  .appPage {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #1f2937;
-  }
-
-  .mainContent {
-    padding: 18px;
-  }
+  .appPage { flex-direction: column; }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #1f2937; }
+  .mainContent { padding: 18px; }
 }

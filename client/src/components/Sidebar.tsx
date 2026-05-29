@@ -1,12 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import "./sidebar.css";
-
-type UserType = "profesional" | "empresa";
-
-interface SidebarProps {
-  userType?: UserType;
-}
+import { useApp } from "../context/AppContext";
+import "./Sidebar.css";
 
 const profesionalMenu = [
   { label: "Dashboard",   path: "/dashboard" },
@@ -16,14 +11,15 @@ const profesionalMenu = [
 ];
 
 const empresaMenu = [
-  { label: "Mi Empresa",  path: "/companyProfile" },
+  { label: "Mi Empresa",  path: "/companyprofile" },
   { label: "Mis Ofertas", path: "/joboffers" },
   { label: "Candidatos",  path: "/candidates" },
 ];
 
-export default function Sidebar({ userType = "profesional" }: SidebarProps) {
+export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout, user } = useApp();
   const [open, setOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
@@ -33,7 +29,7 @@ export default function Sidebar({ userType = "profesional" }: SidebarProps) {
     setOpen(false);
   };
 
-  const menu = userType === "empresa" ? empresaMenu : profesionalMenu;
+  const menu = user?.role === "empresa" ? empresaMenu : profesionalMenu;
 
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
@@ -58,9 +54,8 @@ export default function Sidebar({ userType = "profesional" }: SidebarProps) {
 
       {/* FOOTER */}
       <div className="sidebar-footer">
-        <button className="sidebar-btn">⚙️ Settings</button>
-        <button className="sidebar-btn logout" onClick={() => navigate("/")}>
-          Logout
+        <button className="sidebar-btn logout" onClick={() => { logout(); navigate("/"); }}>
+          Cerrar sesión
         </button>
       </div>
     </div>

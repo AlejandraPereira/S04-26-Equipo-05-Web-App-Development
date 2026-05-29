@@ -90,7 +90,7 @@ export default function TopBar({ placeholder = "Buscar...", showLogo = false }: 
           alignItems: "center", justifyContent: "center",
           fontWeight: 600, cursor: "pointer",
         }}>
-          {user.initials}
+          {user ? user.fullName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() : "?"}
         </div>
       </div>
     </div>
